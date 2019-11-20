@@ -67,19 +67,23 @@ afficherattribut(Func1, Func2) :-
     echo(bagof(Func2)).
 */
 
-afficherattribut(Func) :-
-    \+var(Func),
-    Func =.. [_ | Terms],
-    echo(Func).
-
-
-afficherParam([X|L]) :- echo(X), afficherParam(L), afficherattribut(X).
-
-
 unifie(Func1, Func2):-
     \+var(Func1),
     \+var(Func2),
     Func1 =.. [X | Terms1],
     Func2 =.. [Y | Terms2],
+    X = Y,
     echo(X), echo(Terms1),
-    echo(Y), echo(Terms2).
+    echo(Y), echo(Terms2),
+    test(Terms1, Terms2).
+
+test([X|Y], [W|Z]):-
+    unifie(X, W),
+    test(Y, Z).
+
+test(X, Y):-
+    length(X, 0),
+    length(Y, 0).
+
+
+
