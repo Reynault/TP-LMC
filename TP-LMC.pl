@@ -31,7 +31,70 @@ echo(_).
 
 % Question n°1
 
-% regle
+% Règle
+
+% Orient (Vrai si on peut appliquer la règle)
+
+/* Test si orient peux etre appliquée sur les deux paramètres
+si il peux etre appliqué alors on ne va pas plus loin, on va déjà
+appliquer cette règle*/
+regle(T ?= X, orient) :-
+    nonvar(T), var(X),
+    echo("\n Orient peux etre appliquer sur: \n\t"),
+    echo(T), echo(" ?= "), echo(X),
+    !.
+
+% Simplifie (Vrai si on peut appliquer la règle)
+
+/*peux être appliquée sur les deux paramètres
+si il peux etre appliqué alors on ne va pas plus loin, on va déjà
+appliquer cette règle*/
+regle(X ?= T, simplify) :-
+    var(X), atomic(T),
+    echo("\n simplify peux etre appliquer sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
+    !.
+
+% ... autres règles ...
+
+
+% Test d'occurence (Vrai si V ne se trouve pas dans T)
+
+/*
+Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le terme T car c'est une variable on peux donc stoper le test d'occurence.
+Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, car les deux sont different.
+*/
+occur_check(V, T) :-
+    var(T),!,
+    V \== T,
+    !.
+
+/*
+Si T est un terme alors il faut parcourir ses éléments afin de vérifier que V ne se trouve pas dedans.
+On transforme alors T en liste et on parcours la liste.
+*/
+occur_check(V, T):-
+    T =.. [ _| Termes],
+    occur_check_parcours(V, Termes).
+
+/*
+Prédicat qui permet de mettre fin à la récurrence quand la liste est vide.
+*/
+occur_check_parcours(V, []) :-
+    !.
+
+/*
+Prédicat de parcours d'une liste de paramètres qu'il faut alors tester un à un.
+*/
+occur_check_parcours(V, [Element | Termes]):-
+    occur_check(V, Element),
+    occur_check_parcours(V, Termes).
+
+
+
+
+
+%%%%%%%%%%%%% PARTIE TEST %%%%%%%%%%%%%%
 
 /*regle( f(a) ?= f(b), rename ).
 regle( f(a) ?= f(b), simplify ).
@@ -39,8 +102,8 @@ regle( f(a) ?= f(b), expand ).
 regle( f(a) ?= f(b), check ).
 regle( f(a) ?= f(b), orient ).
 regle( f(a) ?= f(b), decompose ).
-regle( f(a) ?= f(b), clash ).*/
-/*
+regle( f(a) ?= f(b), clash ).
+
 regle(A ?= B, decompose).
 
 regle( f(A) ?= f(B), decompose ) :-
@@ -48,52 +111,6 @@ regle( f(A) ?= f(B), decompose ) :-
 
 regle( f(A, X) ?= f(B, Y), decompose) :-
     regle(X ?= Y, decompose), regle(f(A) ?= f(B), decompose), echo(A).
-*/
-
-
-% test si orient peux etre applique sur les deux parametres
-% si il peux etre appliqué alors on ne va pas plus loin, on va deja
-% appliquer cette regle
-regle(T ?= X, orient) :-
-    nonvar(T), var(X),
-    echo("\n Orient peux etre appliquer sur: \n\t"),
-    echo(T), echo(" ?= "), echo(X),
-    !.
-
-% test si simplifie peux etre applique sur les deux parametres
-% si il peux etre appliqué alors on ne va pas plus loin, on va deja
-% appliquer cette regle
-regle(X ?= T, simplify) :-
-    var(X), atomic(T),
-    echo("\n simplify peux etre appliquer sur: \n\t"),
-    echo(X), echo(" ?= "), echo(T),
-    !.
-
-% ... autres regles ...
-
-
-% test d'occurence (Vrai si on passe le test)
-/*
-si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le terme T car c'est une variable on peux donc stoper le test d'occurence.
-Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, car les deux sont different.
-*/
-occur_check(V, T) :-
-    var(T),!,
-    V \== T,!.
-/*
-si T est un therme alors il faut parcourir ses element affin de verifier que V ne se trouve pas dedans.
-on cast alors T en list et on parcours la list
-*/
-occur_check(V,T):-
-    T =.. [ _| Termes].
-
-
-
-
-
-
-
-
 
 
 unifie([X ?= Y | Z]) :-
@@ -126,9 +143,6 @@ same_size_list([_|L1], [_|L2]) :-
     same_size_list(L1, L2).
 
 
-
-
-
 unifie(Func1, Func2):-
     \+var(Func1),
     \+var(Func2),
@@ -147,5 +161,4 @@ test(X, Y):-
     length(X, 0),
     length(Y, 0).
 
-
-
+*/
