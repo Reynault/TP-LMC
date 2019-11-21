@@ -49,23 +49,85 @@ regle( f(A) ?= f(B), decompose ) :-
 regle( f(A, X) ?= f(B, Y), decompose) :-
     regle(X ?= Y, decompose), regle(f(A) ?= f(B), decompose), echo(A).
 */
-/*
-p(x ?= x, decompose).
-p(f(x, A) ?= f(y, B), decompose) :- p(x ?= y, decompose).
-*/
 
+
+% test si orient peux etre applique sur les deux parametres
+% si il peux etre appliqué alors on ne va pas plus loin, on va deja
+% appliquer cette regle
+regle(T ?= X, orient) :-
+    nonvar(T), var(X),
+    echo("\n Orient peux etre appliquer sur: \n\t"),
+    echo(T), echo(" ?= "), echo(X),
+    !.
+
+% test si simplifie peux etre applique sur les deux parametres
+% si il peux etre appliqué alors on ne va pas plus loin, on va deja
+% appliquer cette regle
+regle(X ?= T, simplify) :-
+    var(X), atomic(T),
+    echo("\n simplify peux etre appliquer sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
+    !.
+
+% ... autres regles ...
+
+
+% test d'occurence (Vrai si on passe le test)
 /*
-p(f([X|Y]), f(W|Z)) :- echo(X), echo(W).
+si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le terme T car c'est une variable on peux donc stoper le test d'occurence.
+Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, car les deux sont different.
 */
+occur_check(V, T) :-
+    var(T),!,
+    V \== T,!.
 /*
-afficherattribut(Func1, Func2) :-
+si T est un therme alors il faut parcourir ses element affin de verifier que V ne se trouve pas dedans.
+on cast alors T en list et on parcours la list
+*/
+occur_check(V,T):-
+    T =.. [ _| Termes].
+
+
+
+
+
+
+
+
+
+
+unifie([X ?= Y | Z]) :-
+    regle([X ?= Y | Z], decompose).
+unifie([X ?= Y | Z]) :-
+    regle([X ?= Y | Z], orient).
+
+unifie(Z) :-
+    echo(Z).
+
+regle([Func1 ?= Func2 | Z], decompose) :-
     \+var(Func1),
     \+var(Func2),
-    Func1 =.. [_ | Terms1],
-    Func2 =.. [_ | Terms2],
-    echo(bagof(Func1)),
-    echo(bagof(Func2)).
-*/
+    Func1 =.. [X | Terms1],
+    Func2 =.. [Y | Terms2],
+    X = Y,
+    echo(X), echo(" ?= "), echo(Y), echo("\n"),
+    echo(Terms1), echo(Terms2),
+    not(length(Terms1, 0)),
+    not(length(Terms2, 0)),
+    same_size_list(Terms1, Terms2).
+
+regle([X ?= Y | Z], orient) :-
+    not(var(X)),
+    unifie([Y ?= X | Z]).
+
+same_size_list([], []).
+
+same_size_list([_|L1], [_|L2]) :-
+    same_size_list(L1, L2).
+
+
+
+
 
 unifie(Func1, Func2):-
     \+var(Func1),
