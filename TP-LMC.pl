@@ -59,7 +59,7 @@ regle(X ?= T, simplify) :-
     echo(X), echo(" ?= "), echo(T),
     !.
 
-% Decompose
+% Decompose (Vrai si on peut appliquer la règle)
 
 /*
     Règle de décomposition, cette règle peut s'appliquer dans le cas où les deux
@@ -74,7 +74,38 @@ regle(Func1 ?= Func2, decompose) :-
     Nb1 == Nb2,
     !.
 
+% Clash (Vrai si on peut appliquer la règle)
+
+/*
+    Règle clash, on vérifie deux choses, le nom des deux fonctions est différent ou le nombre
+    d'arité est différent. 
+*/
+regle(Func1 ?= Func2, clash) :-
+    Func1 =.. [F| _],
+    Func2 =.. [G| _],
+    F \== G,
+    !.
+
+regle(Func1 ?= Func2, clash) :-
+    Func1 =.. [_| Termes1],
+    Func2 =.. [_| Termes2],
+    length(Termes1, Nb1),
+    length(Termes2, Nb2),
+    Nb1 \== Nb2,
+    !.
+
+% Expand
+
+/*
+
+*/
+
+
+
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
+
+regle(X ?= Y, check) :-
+    \+occur_check(X, Y).
 
 /*
     Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
