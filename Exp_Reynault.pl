@@ -23,7 +23,7 @@ echo(_).
 % Réduit
 
 
-construct(E, P, Q).
+%construct(E, P, Q).
 
 /*
     Chercher l'équation qui possède dans sa partie gauche, la variable T (Récupération de la partie droite)
@@ -32,7 +32,7 @@ construct(E, P, Q).
 
     Mettre à jour le système d'équation Q (P avec changement)
 */
-reduit(rename, E, P, Q) :-
+/*reduit(rename, E, P, Q) :-
     E =.. [_| V],
     V = [X| T],
     echo(X), echo(" ?= "), echo(T),
@@ -40,9 +40,10 @@ reduit(rename, E, P, Q) :-
     T is D,
     construct(E, P, Q),
     !.
+*/
 
 recup(ToFind, Program, Right) :-
-    P = [Equation| System],
+    Program = [Equation| _],
     Equation =.. [_| V],
     V = [X| T],
     X = ToFind,
@@ -51,9 +52,7 @@ recup(ToFind, Program, Right) :-
     !.
 
 recup(ToFind, Program, Right) :-
-    P = [Equation| System],
-    Equation =.. [_| V],
-    V = [X| T],
+    Program = [_| System],
     recup(ToFind, System, Right),
     !.
 
