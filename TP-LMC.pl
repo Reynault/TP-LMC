@@ -42,7 +42,7 @@ echo(_).
 */
 regle(T ?= X, orient) :-
     nonvar(T), var(X),
-    echo("\n Orient peux etre appliquer sur: \n\t"),
+    echo("\n Orient peux etre appliquee sur: \n\t"),
     echo(T), echo(" ?= "), echo(X),
     !.
 
@@ -55,7 +55,7 @@ regle(T ?= X, orient) :-
 */
 regle(X ?= T, simplify) :-
     var(X), atomic(T),
-    echo("\n simplify peux etre appliquer sur: \n\t"),
+    echo("\n simplify peux etre appliquee sur: \n\t"),
     echo(X), echo(" ?= "), echo(T),
     !.
 
@@ -72,6 +72,8 @@ regle(Func1 ?= Func2, decompose) :-
     length(Termes1, Nb1),
     length(Termes2, Nb2),
     Nb1 == Nb2,
+    echo("\n decompose peux etre appliquee sur: \n\t"),
+    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
 % Clash (Vrai si on peut appliquer la règle)
@@ -80,32 +82,55 @@ regle(Func1 ?= Func2, decompose) :-
     Règle clash, on vérifie deux choses, le nom des deux fonctions est différent ou le nombre
     d'arité est différent. 
 */
+
+/*
+    Vérification au niveau du nom
+*/
 regle(Func1 ?= Func2, clash) :-
     Func1 =.. [F| _],
     Func2 =.. [G| _],
     F \== G,
+    echo("\n clash peux etre appliquee sur: \n\t"),
+    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
+/*
+    Vérification au niveau du nombre d'arité
+*/
 regle(Func1 ?= Func2, clash) :-
     Func1 =.. [_| Termes1],
     Func2 =.. [_| Termes2],
     length(Termes1, Nb1),
     length(Termes2, Nb2),
     Nb1 \== Nb2,
+    echo("\n clash peux etre appliquee sur: \n\t"),
+    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
-% Expand
+% Rename
 
 /*
-
+    On vérifie si les deux parties de l'équation sont deux variables
 */
-
+regle(X ?= T, rename) :-
+    var(X),
+    var(T),
+    echo("\n rename peux etre appliquee sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
+    !.
 
 
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
 
-regle(X ?= Y, check) :-
-    \+occur_check(X, Y).
+/*
+    Le prédicat occur_check regarde si il n'y a pas d'occur check ( donc vrai si on ne trouve pas ), et la regle
+    indique si oui ou non on peut appliquer la règle. (\+ négation)
+*/
+regle(X ?= T, check) :-
+    \+occur_check(X, T),
+    echo("\n check peux etre appliquee sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
+    !.
 
 /*
     Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
@@ -139,7 +164,19 @@ occur_check_parcours(V, [Element | Termes]):-
     occur_check(V, Element),
     occur_check_parcours(V, Termes).
 
+% Expand
 
+/*
+    Vérification si X est une variable, si T est composé, et si X n'est pas
+    dans T, on utilise l'occur check précédemment défini.
+*/
+regle(X ?= T, expand) :-
+    var(X),
+    nonvar(T),
+    occur_check(X, T),
+    echo("\n expand peux etre appliquee sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
+    !.
 
 
 
