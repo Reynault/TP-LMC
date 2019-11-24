@@ -1,3 +1,5 @@
+% Fichier dans lequel j'avance de mon côté
+
 % Opérateur ?=
 
 :- op(20,xfy,?=).
@@ -22,38 +24,46 @@ echo(_).
 
 % Réduit
 
-
-%construct(E, P, Q).
+% Rename
 
 /*
-    Chercher l'équation qui possède dans sa partie gauche, la variable T (Récupération de la partie droite)
-
-    Renommer E par la variable de cette équation
-
-    Mettre à jour le système d'équation Q (P avec changement)
-*/
-/*reduit(rename, E, P, Q) :-
-    E =.. [_| V],
-    V = [X| T],
-    echo(X), echo(" ?= "), echo(T),
-    recup(ToFind, Program, Right),
-    T is D,
-    construct(E, P, Q),
-    !.
+    Le prédicat reduit pour la règle rename fait:
+    	- La recherche dans le programme P pour trouver toutes les occurences de X (qui est dans E)
+    	- La substitution de ces X avec le terme T (Qui est dans E et qui est une variable)
+    	- Puis l'ajout dans le nouveau système d'équations Q
 */
 
-recup(ToFind, Program, Right) :-
-    Program = [Equation| _],
-    Equation =.. [_| V],
-    V = [X| T],
-    X = ToFind,
-    var(T),
-    Right = T,
-    !.
+rename(X, T, Element) :-
+	/*Element =.. [_| Equation],
+	Equation = [X2| T2],
+	echo("rename: "), echo(T2),echo("\n"),
+	\+var(T2),
+	!,
+	T2 \== X,
+	!,
+	echo("rename: "), echo(Element),echo("\n"),
+	T2 is T,
+	echo("rename: "), echo(Element),echo("\n").*/
+	X = T.
 
-recup(ToFind, Program, Right) :-
-    Program = [_| System],
-    recup(ToFind, System, Right),
+
+
+reduit(rename, E, P, Q) :-
+	E =.. [_| Equation],
+	Equation = [X| T],
+	Q = P,
+	rename(X, T, Q),
+	echo(Q),
+	!.
+
+% Occur check
+
+/*
+	Si on réduit avec une occur check, on termine en indiquant que c'est impossible
+*/
+reduit(check, E, P, Q) :-
+		echo("\n Occur check detectee \n"),
+		false,
     !.
 
 /*
@@ -65,15 +75,7 @@ reduit(expand, E, P, Q) :-
 
     .
 
-reduit(check, E, P, Q) :-
-
-    !.
-
 reduit(orient, E, P, Q) :-
-
-    .
-
-reduit(decompose, E, P, Q) :-
 
     .
 
