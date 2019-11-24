@@ -164,7 +164,7 @@ occur_check_parcours(V, [Element | Termes]):-
     occur_check(V, Element),
     occur_check_parcours(V, Termes).
 
-% Expand
+% Expand (Vrai si on peut appliquer la règle)
 
 /*
     Vérification si X est une variable, si T est composé, et si X n'est pas
@@ -177,7 +177,6 @@ regle(X ?= T, expand) :-
     echo("\n expand peux etre appliquee sur: \n\t"),
     echo(X), echo(" ?= "), echo(T),
     !.
-
 
 
 %%%%%%%%%%%%% PARTIE TEST %%%%%%%%%%%%%%
