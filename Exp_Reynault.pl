@@ -25,46 +25,28 @@ echo(_).
 % Réduit
 
 % Rename
-
-/*
-    Le prédicat reduit pour la règle rename fait:
-    	- La recherche dans le programme P pour trouver toutes les occurences de X (qui est dans E)
-    	- La substitution de ces X avec le terme T (Qui est dans E et qui est une variable)
-    	- Puis l'ajout dans le nouveau système d'équations Q
-*/
-
-rename(X, T, Element) :-
-	/*Element =.. [_| Equation],
-	Equation = [X2| T2],
-	echo("rename: "), echo(T2),echo("\n"),
-	\+var(T2),
-	!,
-	T2 \== X,
-	!,
-	echo("rename: "), echo(Element),echo("\n"),
-	T2 is T,
-	echo("rename: "), echo(Element),echo("\n").*/
-	X = T.
-
-
-
 reduit(rename, E, P, Q) :-
+	% Récupération de l'équation sur laquelle appliquer la règle
 	E =.. [_| Equation],
 	Equation = [X| T],
-	Q = P,
-	rename(X, T, Q),
-	echo(Q),
+	% Application du renommage
+	rename(X, T, P, Q),
 	!.
 
-% Occur check
+rename(X, T, [Element, Programme], Q) :-
+	Element =.. [_| Equation],
+	Equation = [X2| T2],
+	%var(T2),
+	%T2 == X,
+	echo(Programme),
+	echo(Q),
+	Q = [X2 ?= T| Q],
+	rename(X, T, Programme,  Q),
+	!.
 
-/*
-	Si on réduit avec une occur check, on termine en indiquant que c'est impossible
-*/
-reduit(check, E, P, Q) :-
-		echo("\n Occur check detectee \n"),
-		false,
-    !.
+rename(_, _, [], _) :-
+	% Programme vide
+	!.
 
 /*
 reduit(simplify, E, P, Q) :-

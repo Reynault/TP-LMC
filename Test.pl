@@ -1,4 +1,4 @@
 % Test File
 
 % Rename
-reduit(rename, Z ?= X, [Z ?= f(a,c,b), Y ?= Z, Z ?= X], Q).
+reduit(rename, Z ?= X, [W ?= f(Z,c,b), Y ?= Z], Q).
