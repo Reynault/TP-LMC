@@ -21,6 +21,9 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
+% Unifie
+%unifie(P) :-
+	
 
 % Réduit
 
@@ -29,23 +32,10 @@ reduit(rename, E, P, Q) :-
 	% Récupération de l'équation sur laquelle appliquer la règle
 	E =.. [_| Equation],
 	Equation = [X| T],
-	% Application du renommage
-	rename(X, T, P, Q),
-	!.
-
-rename(X, T, [Element, Programme], Q) :-
-	Element =.. [_| Equation],
-	Equation = [X2| T2],
-	%var(T2),
-	%T2 == X,
-	echo(Programme),
-	echo(Q),
-	Q = [X2 ?= T| Q],
-	rename(X, T, Programme,  Q),
-	!.
-
-rename(_, _, [], _) :-
-	% Programme vide
+	% Unification avec la nouvelle valeur de X
+	X = T,
+	% Stockage du nouveau programme dans Q
+	Q = P,
 	!.
 
 /*

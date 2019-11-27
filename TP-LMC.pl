@@ -123,16 +123,6 @@ regle(X ?= T, rename) :-
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
 
 /*
-    Le prédicat occur_check regarde si il n'y a pas d'occur check ( donc vrai si on ne trouve pas ), et la regle
-    indique si oui ou non on peut appliquer la règle. (\+ négation)
-*/
-regle(X ?= T, check) :-
-    \+occur_check(X, T),
-    echo("\n check peux etre appliquee sur: \n\t"),
-    echo(X), echo(" ?= "), echo(T),
-    !.
-
-/*
     Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
     terme T car c'est une variable on peux donc stoper le test d'occurence.
     Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, 
