@@ -94,7 +94,7 @@ reduit(decompose, E, [_| P], Q) :-
 	T = [K| _],
 	X =.. [Param1| Reste1],
 	K =.. [Param2| Reste2],
-	decomposer(Reste1, Reste2),
+	decomposer(Reste1, Reste2, P),
 	!.
 
 decomposer(E, T, P) :-
@@ -107,7 +107,7 @@ decomposer(E, T, P) :-
 	decomposer(Reste1, Reste2),
 	!.
 
-decomposer([], []) :-
+decomposer([], [], P) :-
 	!.
 
 
