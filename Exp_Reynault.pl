@@ -63,8 +63,20 @@ occur_check_parcours(V, [Element | Termes]):-
 
 % Réduit
 
-% Rename
+% Rename/ Expand/ Simplify
 reduit(rename, E, [_| P], Q) :-
+	elimination(E, P, Q),
+	!.
+
+reduit(expand, E, [_| P], Q) :-
+	elimination(E, P, Q),
+	!.
+
+reduit(simplify, E, [_| P], Q) :-
+	elimination(E, P, Q),
+	!.
+
+elimination(E, P, Q) :-
 	% Récupération de l'équation sur laquelle appliquer la règle
 	E =.. [_| Equation],
 	Equation = [X| T],
@@ -72,20 +84,44 @@ reduit(rename, E, [_| P], Q) :-
 	X = T,
 	% Q devient alors le reste du programme
 	Q = P,
-	echo(Q),
 	!.
 
-reduit(decompose, E, P, Q) :-
+% Decompose
+reduit(decompose, E, [_| P], Q) :-
+	% Récupération des paramètres
+	E =.. [_| Equation],
+	Equation = [X| T],
+	T = [K| _],
+	X =.. [Param1| Reste1],
+	K =.. [Param2| Reste2],
+	decomposer(Reste1, Reste2),
 	!.
 
-reduit(simplify, E, P, Q) :-
+decomposer(E, T, P) :-
+	E = [Param1| Reste1],
+	T = [Param2| Reste2],
+	echo(Param1),
+	echo(Param2),
+	P = [Param1 ?= Param2| P],
+	echo(P),
+	decomposer(Reste1, Reste2),
 	!.
 
-reduit(expand, E, P, Q) :-
+decomposer([], []) :-
 	!.
+
 
 reduit(orient, E, P, Q) :-
 	!.
 
 reduit(clash, E, P, Q) :-
 	!.
+
+
+
+
+
+
+
+
+
