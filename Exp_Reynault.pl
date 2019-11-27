@@ -5,7 +5,8 @@
 :- op(20,xfy,?=).
 
 
-
+% récupérer arguments : arg(numéro, nom de la fonction, variable où stocker le résultat)
+% à tester: compoud(T)
 
 % Prédicats d'affichage fournis
 
