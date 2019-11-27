@@ -21,37 +21,71 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
+% ------------------------------------
+
+% Occur check
+/*
+    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
+    terme T car c'est une variable on peux donc stoper le test d'occurence.
+    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, 
+    car les deux sont différents.
+*/
+occur_check(V, T) :-
+    var(T),!,
+    V \== T,
+    !.
+
+/*
+    Si T est un terme alors il faut parcourir ses éléments afin de vérifier que V ne se trouve pas dedans.
+    On transforme alors T en liste et on parcours la liste.
+*/
+occur_check(V, T):-
+    T =.. [ _| Termes],
+    occur_check_parcours(V, Termes).
+
+/*
+    Prédicat qui permet de mettre fin à la récurrence quand la liste est vide.
+*/
+occur_check_parcours(_, []) :-
+    !.
+
+/*
+    Prédicat de parcours d'une liste de paramètres qu'il faut alors tester un à un.
+*/
+occur_check_parcours(V, [Element | Termes]):-
+    occur_check(V, Element),
+    occur_check_parcours(V, Termes).
+
 % Unifie
 %unifie(P) :-
 	
+% ------------------------------------
 
 % Réduit
 
 % Rename
-reduit(rename, E, P, Q) :-
+reduit(rename, E, [_| P], Q) :-
 	% Récupération de l'équation sur laquelle appliquer la règle
 	E =.. [_| Equation],
 	Equation = [X| T],
 	% Unification avec la nouvelle valeur de X
 	X = T,
-	% Stockage du nouveau programme dans Q
+	% Q devient alors le reste du programme
 	Q = P,
+	echo(Q),
 	!.
 
-/*
-reduit(simplify, E, P, Q) :-
+reduit(decompose, E, P, Q) :-
+	!.
 
-    .
+reduit(simplify, E, P, Q) :-
+	!.
 
 reduit(expand, E, P, Q) :-
-
-    .
+	!.
 
 reduit(orient, E, P, Q) :-
-
-    .
+	!.
 
 reduit(clash, E, P, Q) :-
-
-    .
-*/
+	!.
