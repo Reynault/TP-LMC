@@ -11,7 +11,6 @@ consult('TP-LMC.pl').*/
 
 
 
-
 % Prédicats d'affichage fournis
 
 % set_echo: ce prédicat active l'affichage par le prédicat echo
@@ -26,7 +25,10 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
+% Configuration pre-execution
 
+:- style_check(-discontiguous).
+:- set_echo.
 
 % Question n°1
 
@@ -210,9 +212,6 @@ reduit(simplify, X ?= T, P, Q) :-
     les règles rename, expand et simplify
 */
 elimination(X ?= T, P, Q) :-
-    % Récupération de l'équation sur laquelle appliquer la règle
-    /*E =.. [_| Equation],
-    Equation = [X| T],*/
     % Unification avec la nouvelle valeur de X
     X = T,
     % Q devient alors le reste du programme
@@ -226,10 +225,6 @@ elimination(X ?= T, P, Q) :-
     On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q. 
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
-    % Récupération des paramètres
-    /*E =.. [_| Equation],
-    Equation = [Fonc1| T],*/
-    % T = [Fonc2| _],
     % Récupération des arguments
     Fonc1 =.. [_| Param1],
     Fonc2 =.. [_| Param2],
@@ -244,7 +239,7 @@ reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     Prédicat de decomposition, cas initial où les deux listes des
     arguments sont vides.
 */
-decompose([], [], Liste) :-
+decompose([], [], _) :-
     !.
 
 /*
@@ -264,11 +259,6 @@ decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
     puis l'ajoute au programme P, le résulat est alors stocké dans Q
 */
 reduit(orient, X ?= T, P, Q) :-
-    % Récupération des paramètres
-    /*E =.. [_| Equation],
-    Equation = [T| Variable],
-    Variable = [X| _],*/
-
     % Ajout dans P de l'équation inversée
     append([X ?= T], P, Q),
     !.
