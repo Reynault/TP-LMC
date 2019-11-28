@@ -162,7 +162,7 @@ occur_check_parcours(V, [Element | Termes]):-
 */
 regle(X ?= T, expand) :-
     var(X),
-    nonvar(T),
+    compound(T),
     occur_check(X, T),
     echo("\n expand peux etre appliquee sur: \n\t"),
     echo(X), echo(" ?= "), echo(T),

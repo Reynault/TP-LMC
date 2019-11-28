@@ -22,6 +22,9 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
+test(T) :-
+	compound(T).
+
 % ------------------------------------
 
 % Occur check
