@@ -22,9 +22,6 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
-test(T) :-
-	compound(T).
-
 % ------------------------------------
 
 % Occur check
@@ -59,27 +56,47 @@ occur_check_parcours(_, []) :-
 occur_check_parcours(V, [Element | Termes]):-
     occur_check(V, Element),
     occur_check_parcours(V, Termes).
+	
+% ------------------------------------
 
 % Unifie
 %unifie(P) :-
-	
-% ------------------------------------
 
 % Réduit
 
 % Rename/ Expand/ Simplify
+
+/*
+	Prédicat réduit pour la règle rename, il applique le renommage sur
+	le programme P en fonction de l'équation E, et rend le résultat
+	dans Q
+*/
 reduit(rename, E, [_| P], Q) :-
 	elimination(E, P, Q),
 	!.
 
+/*
+	Prédicat réduit pour la règle expand, il applique l'extension sur
+	le programme P en fonction de l'équation E, et rend le résultat
+	dans Q
+*/
 reduit(expand, E, [_| P], Q) :-
 	elimination(E, P, Q),
 	!.
 
+/*
+	Prédicat réduit pour la règle simplify, il applique la simplification sur
+	le programme P en fonction de l'équation E, et rend le résultat
+	dans Q
+*/
 reduit(simplify, E, [_| P], Q) :-
 	elimination(E, P, Q),
 	!.
 
+/*
+	Prédicat elimination qui permet d'appliquer l'unification permettant d'appliquer
+	les règles rename, expand et simplify
+*/
 elimination(E, P, Q) :-
 	% Récupération de l'équation sur laquelle appliquer la règle
 	E =.. [_| Equation],
@@ -91,41 +108,42 @@ elimination(E, P, Q) :-
 	!.
 
 % Decompose
+
+/*
+	Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
+	On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q. 
+*/
 reduit(decompose, E, [_| P], Q) :-
 	% Récupération des paramètres
 	E =.. [_| Equation],
-	Equation = [X| T],
-	T = [K| _],
-	X =.. [Param1| Reste1],
-	K =.. [Param2| Reste2],
-	decomposer(Reste1, Reste2, P),
+	Equation = [Fonc1| T],
+	T = [Fonc2| _],
+	% Récupération des arguments
+	Fonc1 =.. [_| Param1],
+	Fonc2 =.. [_| Param2],
+
+	% Ajout des nouvelles équations
+	decompose(Param1, Param2, Liste),
+	% Ajout de la liste dans le programme P
+	append(P, Liste, Q),
 	!.
 
-decomposer(E, T, P) :-
-	E = [Param1| Reste1],
-	T = [Param2| Reste2],
-	echo(Param1),
-	echo(Param2),
-	P = [Param1 ?= Param2| P],
-	echo(P),
-	decomposer(Reste1, Reste2),
+decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
+	append(Liste, [Arg1 ?= Arg2], New),
+	decompose(Args1, Args2, Liste),
 	!.
 
-decomposer([], [], P) :-
-	!.
-
-
-reduit(orient, E, P, Q) :-
-	!.
-
-reduit(clash, E, P, Q) :-
+decompose([], [], Liste) :-
+	echo("fin"),
+	echo(Liste),
 	!.
 
 
+reduit(orient, E, [_| P], Q) :-
+	% Récupération des paramètres
+	E =.. [_| Equation],
+	Equation = [T| Variable],
+	Variable = [X| _],
 
-
-
-
-
-
-
+	append(P, [X ?= T], Q),
+	!.
