@@ -453,6 +453,19 @@ choix_inverse(P, Q, E, R) :-
 	delete(P, E, Q),
 	!.
 
+% Question n°3
+
+% Prédicat unif(P, S)
+
+unif(P, S) :-
+	clr_echo,
+	unifie(P, S).
+
+trace_unif(P, S) :-
+	set_echo,
+	unifie(P, S).
+
+
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
 /*
