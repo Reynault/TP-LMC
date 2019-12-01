@@ -1,12 +1,15 @@
-% Fichier dans lequel j'avance de mon côté
+/* TP - Logique - Groupe : Julien Romary, Reynault Sies
+
+Syntax:
+consult('TP-LMC.pl').*/
+
+
 
 % Opérateur ?=
 
 :- op(20,xfy,?=).
 
 
-% récupérer arguments : arg(numéro, nom de la fonction, variable où stocker le résultat)
-% à tester: compoud(T)
 
 % Prédicats d'affichage fournis
 
@@ -22,9 +25,22 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
-% ------------------------------------
+% Configuration pre-execution
 
-% Occur check
+:- style_check(-discontiguous).
+:- set_echo.
+
+% Question n°1
+
+% Règle --> Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+
+% Regle check associée au test d'occurence, qui est vrai s'il y X dans T
+regle(X ?= T, check) :-
+    \+occur_check(X, T),
+    !.
+
+% Test d'occurence (Vrai si V ne se trouve pas dans T)
+
 /*
     Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
     terme T car c'est une variable on peux donc stoper le test d'occurence.
@@ -56,6 +72,281 @@ occur_check_parcours(_, []) :-
 occur_check_parcours(V, [Element | Termes]):-
     occur_check(V, Element),
     occur_check_parcours(V, Termes).
-	
-% ------------------------------------
 
+% Clash (Vrai si on peut appliquer la règle)
+
+/*
+    Règle clash, on vérifie deux choses, le nom des deux fonctions est différent ou le nombre
+    d'arité est différent. 
+*/
+
+/*
+    Vérification au niveau du nom
+*/
+regle(Func1 ?= Func2, clash) :-
+    compound(Func1),
+    compound(Func2),
+    Func1 =.. [Nom1| Param1],
+    Func2 =.. [Nom2| Param2],
+    verifNom(Nom1, Nom2),
+    verifArite(Param1, Param2),
+    !.
+
+verifNom(Nom1, Nom2) :-
+    Nom1 \== Nom2.
+
+/*
+    Vérification au niveau du nombre d'arité
+*/
+verifArite(Termes1, Termes2) :-
+    echo(Termes1),
+    length(Termes1, Nb1),
+    length(Termes2, Nb2),
+    Nb1 \== Nb2.
+
+% Rename
+
+/*
+    On vérifie si les deux parties de l'équation sont deux variables
+*/
+regle(X ?= T, rename) :-
+    var(X),
+    var(T),
+    !.
+
+% Simplifie (Vrai si on peut appliquer la règle)
+
+/*
+    Peux être appliquée sur les deux paramètres
+    si il peux etre appliqué alors on ne va pas plus loin, on va déjà
+    appliquer cette règle
+*/
+regle(X ?= T, simplify) :-
+    var(X), atomic(T),
+    !.
+
+% Orient (Vrai si on peut appliquer la règle)
+
+/* 
+    Test si orient peux etre appliquée sur les deux paramètres
+    si il peux etre appliqué alors on ne va pas plus loin, on va déjà
+    appliquer cette règle
+*/
+regle(T ?= X, orient) :-
+    nonvar(T), var(X),
+    !.
+
+% Decompose (Vrai si on peut appliquer la règle)
+
+/*
+    Règle de décomposition, cette règle peut s'appliquer dans le cas où les deux
+    symboles de fonction sont les mêmes. (même nom et même nombre de paramètres)
+*/
+regle(Func1 ?= Func2, decompose) :-
+    Func1 =.. [F| Termes1],
+    Func2 =.. [G| Termes2],
+    F == G,
+    length(Termes1, Nb1),
+    length(Termes2, Nb2),
+    Nb1 == Nb2,
+    !.
+
+% Expand (Vrai si on peut appliquer la règle)
+
+/*
+    Vérification si X est une variable, si T est composé, et si X n'est pas
+    dans T, on utilise l'occur check précédemment défini.
+*/
+regle(X ?= T, expand) :-
+    var(X),
+    compound(T),
+    occur_check(X, T),
+    !.
+
+% Réduit : 
+
+% Rename/ Expand/ Simplify
+
+/*
+    Prédicat réduit pour la règle rename, il applique le renommage sur
+    le programme P en fonction de l'équation E, et rend le résultat
+    dans Q
+*/
+reduit(rename, X ?= T, P, Q) :-
+    elimination(X ?= T, P, Q),
+    !.
+
+/*
+    Prédicat réduit pour la règle expand, il applique l'extension sur
+    le programme P en fonction de l'équation E, et rend le résultat
+    dans Q
+*/
+reduit(expand, X ?= T, P, Q) :-
+    elimination(X ?= T, P, Q),
+    !.
+
+/*
+    Prédicat réduit pour la règle simplify, il applique la simplification sur
+    le programme P en fonction de l'équation E, et rend le résultat
+    dans Q
+*/
+reduit(simplify, X ?= T, P, Q) :-
+    elimination(X ?= T, P, Q),
+    !.
+
+/*
+    Prédicat elimination qui permet d'appliquer l'unification permettant d'appliquer
+    les règles rename, expand et simplify
+*/
+elimination(X ?= T, P, Q) :-
+    % Unification avec la nouvelle valeur de X
+    X = T,
+    % Q devient alors le reste du programme
+    Q = P,
+    !.
+
+% Decompose
+
+/*
+    Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
+    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q. 
+*/
+reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
+    % Récupération des arguments
+    Fonc1 =.. [_| Param1],
+    Fonc2 =.. [_| Param2],
+
+    % Ajout des nouvelles équations
+    decompose(Param1, Param2, Liste),
+    % Ajout de la liste dans le programme P
+    append(Liste, P, Q),
+    !.
+
+/*
+    Prédicat de decomposition, cas initial où les deux listes des
+    arguments sont vides.
+*/
+decompose([], [], _) :-
+    !.
+
+/*
+    Prédicat de decomposition, on prend deux listes correspondant aux paramètres des deux fonctions.
+    On ajoute ensuite la nouvelle équations à une autre liste, de sorte à cumuler toutes les
+    équations.
+*/
+decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
+    decompose(Args1, Args2, Temp),
+    append([Arg1 ?= Arg2], Temp, Liste),
+    !.
+
+% Orient
+
+/*
+    Prédicat reduit pour la règle orient, le prédicat prend l'équation E et l'inverse
+    puis l'ajoute au programme P, le résulat est alors stocké dans Q
+*/
+reduit(orient, X ?= T, P, Q) :-
+    % Ajout dans P de l'équation inversée
+    append([X ?= T], P, Q),
+    !.
+
+
+% Unifie
+
+% Unifie avec choix_premier
+
+/*
+	Unification avec choix_premier, on prend la première
+	équation du programme, on récupère la règle à appliquer,
+	puis on réduit le programme.
+*/
+
+unifie([], choix_premier) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_premier) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_premier(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat),
+    !.
+
+% Unifie avec choix_pondere
+
+unifie(P, choix_pondere) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_pondere(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat),
+	!.
+
+% Choix
+
+% Choix_premier
+
+/*
+	Le prédicat choix_premier récupère la première équation
+	du programme P, puis choisi la règle de celle si.
+
+	R devient la règle choisie sur l'équation E
+	P devient le système Q
+*/
+choix_premier([PremiereEquation| P], Q, E, R) :-
+	% E devient la première équation
+	E = PremiereEquation,
+	% On retrouve la règle à effectuer
+    regle(E, R),
+    % Q devient le programme sans la première équation
+    Q = P,
+	!.
+
+% Choix_pondere
+
+choix_pondere([PremiereEquation| P], Q, E, R) :-
+	
+	!.
+
+
+
+% ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
+
+/*
+
+Commande :
+
+    ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)], choix_premier).
+
+Résultat : 
+
+    system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4738)]
+    decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
+    system:   [_4736?=g(_4742),_4738?=h(a),_4742?=f(_4738)]
+    expand:   _4736?=g(_4742)
+    system:   [_4738?=h(a),_4742?=f(_4738)]
+    expand:   _4738?=h(a)
+    system:   [_4742?=f(h(a))]
+    expand:   _4742?=f(h(a))
+
+    X = g(f(h(a))),
+    Y = h(a),
+    Z = f(h(a)).
+
+Commande :
+    
+    ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)], choix_premier).
+
+Résultat :
+
+    system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4736)]
+    decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
+    system:   [_4736?=g(_4742),_4738?=h(a),_4742?=f(_4736)]
+    expand:   _4736?=g(_4742)
+    system:   [_4738?=h(a),_4742?=f(g(_4742))]
+    expand:   _4738?=h(a)
+    system:   [_4742?=f(g(_4742))]
+    check:   _4742?=f(g(_4742))
+    false.
+*/
