@@ -14,6 +14,13 @@ reduit(orient, f(a, b, c) ?= A, [f(a, b, c) ?= A, f(A, d, a) ?= f(Z, c, b), Z ?=
 unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).
 unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)]).
 
+% Clash
+unifie([f(a,b,c) ?= g(a,b,c)]).
+unifie([g(b,c) ?= g(a,b,c)]).
+unifie([f(b,a) ?= g(a,b,c)]).
+unifie([g(b,X) ?= g(a,b,c)]).
+unifie([f(Y,Z) ?= f(Y,X)]).
+
 % effacement
 unifie([f(X, g(Y, Z), a) ?= f(g(V, Z), X, Z)]).
 unifie([f(X, g(Y, Z), a) ?= f(g(v, Z), X, Z)]).

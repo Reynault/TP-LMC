@@ -88,21 +88,19 @@ regle(Func1 ?= Func2, clash) :-
     compound(Func2),
     Func1 =.. [Nom1| Param1],
     Func2 =.. [Nom2| Param2],
-    verifNom(Nom1, Nom2),
-    verifArite(Param1, Param2),
+    \+verifNom(Nom1, Nom2) -> verifArite(Param1, Param2);
     !.
 
 verifNom(Nom1, Nom2) :-
-    Nom1 \== Nom2.
+    Nom1 \== Nom2, !.
 
 /*
     Vérification au niveau du nombre d'arité
 */
 verifArite(Termes1, Termes2) :-
-    echo(Termes1),
     length(Termes1, Nb1),
     length(Termes2, Nb2),
-    Nb1 \== Nb2.
+    Nb1 \== Nb2, !.
 
 % Rename
 
@@ -325,7 +323,9 @@ unifie(P, choix_pondere) :-
 % Choix_pondere
 
 choix_pondere(P, Q, E, R) :-
-	recupRegle(P, [Equation| _]),
+	recupRegle(P, Regles),
+	sort(1, @=<, Regles, [Equation| _]),
+	echo("Equation : "), echo(Equation),
 	Equation = [Poids, E],
 	ponderationVersRegle(Poids, R),
 	delete(P, E, Q),
@@ -344,6 +344,7 @@ recupRegle([], Regles) :-
 recupRegle([E| P], Regles) :-
 	recupRegle(P, New),
 	regle(E, R),
+	echo(E), echo(R),
 	ponderer(R, Poids),
 	append([[Poids, E]], New, Regles),
 	!.
@@ -436,7 +437,22 @@ recupElement([E| P], K, Aleatoire, Element) :-
 
 % Unifie avec choix inversé
 
+unifie([], choix_inverse) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_inverse) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_inverse(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_inverse),
+	!.
+
 % Choix inversé
+/*choix_inverse(P, Q, E, R) :-
+
+	!.*/
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
