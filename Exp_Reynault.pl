@@ -290,18 +290,6 @@ unifie(P, choix_premier) :-
     unifie(Resultat, choix_premier),
     !.
 
-% Unifie avec choix_pondere
-
-unifie(P, choix_pondere) :-
-    echo("system:   "), echo(P), echo("\n"),
-    choix_pondere(P, Q, E, R),
-    echo(R), echo(":   "), echo(E), echo("\n"),
-    reduit(R, E, Q, Resultat),
-    unifie(Resultat, choix_pondere),
-	!.
-
-% Choix
-
 % Choix_premier
 
 /*
@@ -318,6 +306,20 @@ choix_premier([PremiereEquation| P], Q, E, R) :-
     regle(E, R),
     % Q devient le programme sans la première équation
     Q = P,
+	!.
+
+% Unifie avec choix_pondere
+
+unifie([], choix_pondere) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_pondere) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_pondere(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_pondere),
 	!.
 
 % Choix_pondere
@@ -377,6 +379,64 @@ ponderer(expand, Poids) :-
 ponderationVersRegle(Num, R) :-
 	ponderer(R, Num),
 	!.
+
+% Unifie avec choix aléatoire
+
+unifie([], choix_aleatoire) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_aleatoire) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_aleatoire(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_aleatoire),
+	!.
+
+% Choix aléatoire
+
+/*
+	Le prédicat choix aléatoire récupère une valeur aléatoire entre
+	0 et la taille du programme.
+
+	Il récupère ensuite l'équation E pointée par la valeur aléatoire
+	et récupère la règle R qui peut s'appliquer.
+
+	Puis donne à Q le programme P sans l'équation E.
+*/
+choix_aleatoire(P, Q, E, R) :-
+	% Récupération de la taille de la liste
+	length(P, Taille),
+	% Pour récupérer un aléatoire qui indique une équation dans le programme
+	random(0, Taille, Aleatoire),
+	% On récupère ensuite cette équation
+	recupElement(P, 0, Aleatoire, E),
+	% Et on récupère la règle associée
+	regle(E, R),
+	% Q devient alors P moins E
+	delete(P, E, Q),
+	!.
+
+/*
+	Le prédicat recupElement permet de récupérer l'élément pointé par
+	l'entier Aleatoire dans le programme P.
+*/
+recupElement([], _, _, _).
+
+recupElement([E| P], K, Aleatoire, Element) :-
+	% Si K est égal à Aleatoire, alors Element devient l'équation courante
+	K == Aleatoire -> Element = E, !;
+	% Sinon, incrémentation
+	K1 is K + 1,
+	recupElement(P, K1, Aleatoire, Element),
+	!.
+
+
+
+% Unifie avec choix inversé
+
+% Choix inversé
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
