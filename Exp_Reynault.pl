@@ -143,6 +143,8 @@ regle(T ?= X, orient) :-
     symboles de fonction sont les mêmes. (même nom et même nombre de paramètres)
 */
 regle(Func1 ?= Func2, decompose) :-
+	compound(Func1),
+	compound(Func2),
     Func1 =.. [F| Termes1],
     Func2 =.. [G| Termes2],
     F == G,
@@ -270,7 +272,7 @@ unifie(P, choix_premier) :-
     choix_premier(P, Q, E, R),
     echo(R), echo(":   "), echo(E), echo("\n"),
     reduit(R, E, Q, Resultat),
-    unifie(Resultat),
+    unifie(Resultat, choix_premier),
     !.
 
 % Unifie avec choix_pondere
@@ -280,7 +282,7 @@ unifie(P, choix_pondere) :-
     choix_pondere(P, Q, E, R),
     echo(R), echo(":   "), echo(E), echo("\n"),
     reduit(R, E, Q, Resultat),
-    unifie(Resultat),
+    unifie(Resultat, choix_pondere),
 	!.
 
 % Choix
@@ -314,7 +316,6 @@ choix_pondere([PremiereEquation| P], Q, E, R) :-
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
 /*
-
 Commande :
 
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)], choix_premier).
