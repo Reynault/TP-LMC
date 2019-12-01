@@ -9,3 +9,7 @@ reduit(decompose, f(X, d, a) ?= f(Z, c, b), [f(X, d, a) ?= f(Z, c, b), Z ?= X, Y
 
 % Orient
 reduit(orient, f(a, b, c) ?= A, [f(a, b, c) ?= A, f(A, d, a) ?= f(Z, c, b), Z ?= X, Y ?= A], Q).
+
+% Unifie
+unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).
+unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)]).

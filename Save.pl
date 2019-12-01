@@ -90,6 +90,8 @@ regle(Func1 ?= Func2, clash) :-
     Func2 =.. [Nom2| Param2],
     verifNom(Nom1, Nom2),
     verifArite(Param1, Param2),
+    echo("\n clash peux etre appliquee sur: \n\t"),
+    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
 verifNom(Nom1, Nom2) :-
@@ -112,6 +114,8 @@ verifArite(Termes1, Termes2) :-
 regle(X ?= T, rename) :-
     var(X),
     var(T),
+    echo("\n rename peux etre appliquee sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
     !.
 
 % Simplifie (Vrai si on peut appliquer la règle)
@@ -123,6 +127,8 @@ regle(X ?= T, rename) :-
 */
 regle(X ?= T, simplify) :-
     var(X), atomic(T),
+    echo("\n simplify peux etre appliquee sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
     !.
 
 % Expand (Vrai si on peut appliquer la règle)
@@ -135,6 +141,8 @@ regle(X ?= T, expand) :-
     var(X),
     compound(T),
     occur_check(X, T),
+    echo("\n expand peux etre appliquee sur: \n\t"),
+    echo(X), echo(" ?= "), echo(T),
     !.
 
 % Orient (Vrai si on peut appliquer la règle)
@@ -146,6 +154,8 @@ regle(X ?= T, expand) :-
 */
 regle(T ?= X, orient) :-
     nonvar(T), var(X),
+    echo("\n Orient peux etre appliquee sur: \n\t"),
+    echo(T), echo(" ?= "), echo(X),
     !.
 
 % Decompose (Vrai si on peut appliquer la règle)
@@ -161,6 +171,8 @@ regle(Func1 ?= Func2, decompose) :-
     length(Termes1, Nb1),
     length(Termes2, Nb2),
     Nb1 == Nb2,
+    echo("\n decompose peux etre appliquee sur: \n\t"),
+    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
 
@@ -255,15 +267,15 @@ reduit(orient, X ?= T, P, Q) :-
 % Unifie
 
 unifie([]) :-
-    echo("\n"),
+    echo("Fin"),
     !.
 
-unifie(Programme) :-
-    Programme = [X| P],
-    echo("system:   "), echo(Programme), echo("\n"),
-    regle(X, R),
-    echo(R), echo(":   "), echo(X), echo("\n"),
-    reduit(R, X, P, Q),
+unifie([X ?= T| P]) :-
+    echo("Test de la regle"),
+    regle(X ?= T, R),
+    echo("\nApplication de la regle :"), echo(R), echo("\n"),
+    reduit(R, X ?= T, P, Q),
+    echo("\nContinuation de l'algo sur "), echo(Q), echo("\n"),
     unifie(Q),
     !.
 
@@ -278,15 +290,31 @@ Commande :
 
 Résultat : 
 
-    system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4738)]
-    decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
-    system:   [_4736?=g(_4742),_4738?=h(a),_4742?=f(_4738)]
-    expand:   _4736?=g(_4742)
-    system:   [_4738?=h(a),_4742?=f(_4738)]
-    expand:   _4738?=h(a)
-    system:   [_4742?=f(h(a))]
-    expand:   _4742?=f(h(a))
+    Test de la regle
+     decompose peux etre appliquee sur: 
+            f(_14362,_14364) ?= f(g(_14368),h(a))
+    Application de la regle :decompose
 
+    Continuation de l'algo sur [_14362?=g(_14368),_14364?=h(a),_14368?=f(_14364)]
+    Test de la regle
+     expand peux etre appliquee sur: 
+            _14362 ?= g(_14368)
+    Application de la regle :expand
+
+    Continuation de l'algo sur [_14364?=h(a),_14368?=f(_14364)]
+    Test de la regle
+     expand peux etre appliquee sur: 
+            _14364 ?= h(a)
+    Application de la regle :expand
+
+    Continuation de l'algo sur [_14368?=f(h(a))]
+    Test de la regle
+     expand peux etre appliquee sur: 
+            _14368 ?= f(h(a))
+    Application de la regle :expand
+
+    Continuation de l'algo sur []
+    Fin
     X = g(f(h(a))),
     Y = h(a),
     Z = f(h(a)).
@@ -297,13 +325,25 @@ Commande :
 
 Résultat :
 
-    system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4736)]
-    decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
-    system:   [_4736?=g(_4742),_4738?=h(a),_4742?=f(_4736)]
-    expand:   _4736?=g(_4742)
-    system:   [_4738?=h(a),_4742?=f(g(_4742))]
-    expand:   _4738?=h(a)
-    system:   [_4742?=f(g(_4742))]
-    check:   _4742?=f(g(_4742))
+    Test de la regle
+     decompose peux etre appliquee sur: 
+            f(_8796,_8798) ?= f(g(_8802),h(a))
+    Application de la regle :decompose
+
+    Continuation de l'algo sur [_8796?=g(_8802),_8798?=h(a),_8802?=f(_8796)]
+    Test de la regle
+     expand peux etre appliquee sur: 
+            _8796 ?= g(_8802)
+    Application de la regle :expand
+
+    Continuation de l'algo sur [_8798?=h(a),_8802?=f(g(_8802))]
+    Test de la regle
+     expand peux etre appliquee sur: 
+            _8798 ?= h(a)
+    Application de la regle :expand
+
+    Continuation de l'algo sur [_8802?=f(g(_8802))]
+    Test de la regle
+    Application de la regle :check
     false.
 */
