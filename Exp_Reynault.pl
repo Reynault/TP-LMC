@@ -323,7 +323,10 @@ choix_premier([PremiereEquation| P], Q, E, R) :-
 % Choix_pondere
 
 choix_pondere(P, Q, E, R) :-
-	
+	recupRegle(P, [Equation| _]),
+	Equation = [Poids, E],
+	ponderationVersRegle(Poids, R),
+	delete(P, E, Q),
 	!.
 
 /*
@@ -339,10 +342,8 @@ recupRegle([], Regles) :-
 recupRegle([E| P], Regles) :-
 	recupRegle(P, New),
 	regle(E, R),
-	echo("recupPonde :"), echo(R), echo("\n"),
 	ponderer(R, Poids),
-	echo("ajoutliste :"), echo(Poids), echo("\n"),
-	append(New, [[Poids, E]], Regles),
+	append([[Poids, E]], New, Regles),
 	!.
 
 ponderer(clash, Poids) :-
@@ -373,12 +374,8 @@ ponderer(expand, Poids) :-
 	Poids = 5,
 	!.
 
-test(P) :-
-	recupRegle(P, Regles),
-	echo("regle: "), echo(Regles), echo("\n"),
-	sort(1, @=<, Regles, Sorted),
-	echo("trie\n"),
-	echo(Sorted),
+ponderationVersRegle(Num, R) :-
+	ponderer(R, Num),
 	!.
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
