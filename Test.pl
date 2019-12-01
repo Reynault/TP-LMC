@@ -13,3 +13,14 @@ reduit(orient, f(a, b, c) ?= A, [f(a, b, c) ?= A, f(A, d, a) ?= f(Z, c, b), Z ?=
 % Unifie
 unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).
 unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)]).
+
+% effacement
+unifie([f(X, g(Y, Z), a) ?= f(g(V, Z), X, Z)]).
+unifie([f(X, g(Y, Z), a) ?= f(g(v, Z), X, Z)]).
+
+% Boucle Orient
+unifie([f(X, Y, g(a, a)) ?= f(g(Y, Y), Z, Z)]).
+unifie([f(X, Y, g(a, a)) ?= f(Y, g(Z, Z), Z)]).
+
+% Size
+unifie([f(X1, X2, X3, X4, X5, X6, X7, X8, X9, X10) ?= f(g(X0, X0), g(X1, X1), g(X2, X2), g(X3, X3), g(X4, X4), g(X5, X5), g(X6, X6), g(X7, X7), g(X8, X8), g(X9, X9))]).
