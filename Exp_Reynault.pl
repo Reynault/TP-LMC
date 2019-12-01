@@ -255,6 +255,21 @@ reduit(orient, X ?= T, P, Q) :-
 
 % Unifie
 
+% Unifie sans stratègie (Question 1)
+
+unifie([]) :-
+    echo("\n"),
+    !.
+
+unifie(Programme) :-
+    Programme = [X| P],
+    echo("system:   "), echo(Programme), echo("\n"),
+    regle(X, R),
+    echo(R), echo(":   "), echo(X), echo("\n"),
+    reduit(R, X, P, Q),
+    unifie(Q),
+    !.
+
 % Unifie avec choix_premier
 
 /*
@@ -307,11 +322,64 @@ choix_premier([PremiereEquation| P], Q, E, R) :-
 
 % Choix_pondere
 
-choix_pondere([PremiereEquation| P], Q, E, R) :-
+choix_pondere(P, Q, E, R) :-
 	
 	!.
 
+/*
+	Prédicat de récupération des règles
 
+	Regles contient la liste des règles pour chaque équation
+	du programme P
+*/
+
+recupRegle([], Regles) :-
+	Regles = [].
+
+recupRegle([E| P], Regles) :-
+	recupRegle(P, New),
+	regle(E, R),
+	echo("recupPonde :"), echo(R), echo("\n"),
+	ponderer(R, Poids),
+	echo("ajoutliste :"), echo(Poids), echo("\n"),
+	append(New, [[Poids, E]], Regles),
+	!.
+
+ponderer(clash, Poids) :-
+	Poids = 1,
+	!.
+
+ponderer(check, Poids) :-
+	Poids = 1,
+	!.
+
+ponderer(rename, Poids) :-
+	Poids = 2,
+	!.
+
+ponderer(simplify, Poids) :-
+	Poids = 2,
+	!.
+
+ponderer(orient, Poids) :-
+	Poids = 3,
+	!.
+
+ponderer(decompose, Poids) :-
+	Poids = 4,
+	!.
+
+ponderer(expand, Poids) :-
+	Poids = 5,
+	!.
+
+test(P) :-
+	recupRegle(P, Regles),
+	echo("regle: "), echo(Regles), echo("\n"),
+	sort(1, @=<, Regles, Sorted),
+	echo("trie\n"),
+	echo(Sorted),
+	!.
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
