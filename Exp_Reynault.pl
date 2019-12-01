@@ -80,27 +80,24 @@ occur_check_parcours(V, [Element | Termes]):-
     d'arité est différent. 
 */
 
-/*
-    Vérification au niveau du nom
-*/
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    Func1 =.. [Nom1| Param1],
-    Func2 =.. [Nom2| Param2],
-    \+verifNom(Nom1, Nom2) -> verifArite(Param1, Param2);
+    Func1 =.. [Nom1| _],
+    Func2 =.. [Nom2| _],
+    Nom1 \== Nom2,
     !.
 
-verifNom(Nom1, Nom2) :-
-    Nom1 \== Nom2, !.
+regle(Func1 ?= Func2, clash) :-
+    compound(Func1),
+    compound(Func2),
+    Func1 =.. [_| Param1],
+    Func2 =.. [_| Param2],
 
-/*
-    Vérification au niveau du nombre d'arité
-*/
-verifArite(Termes1, Termes2) :-
-    length(Termes1, Nb1),
-    length(Termes2, Nb2),
-    Nb1 \== Nb2, !.
+    length(Param1, Nb1),
+    length(Param2, Nb2),
+    Nb1 \== Nb2,
+    !.
 
 % Rename
 
@@ -324,8 +321,8 @@ unifie(P, choix_pondere) :-
 
 choix_pondere(P, Q, E, R) :-
 	recupRegle(P, Regles),
-	sort(1, @=<, Regles, [Equation| _]),
-	echo("Equation : "), echo(Equation),
+	sort(1, @>=, Regles, [Equation| _]),
+	echo("Equation : "), echo(Equation), echo("\n"),
 	Equation = [Poids, E],
 	ponderationVersRegle(Poids, R),
 	delete(P, E, Q),
@@ -344,7 +341,6 @@ recupRegle([], Regles) :-
 recupRegle([E| P], Regles) :-
 	recupRegle(P, New),
 	regle(E, R),
-	echo(E), echo(R),
 	ponderer(R, Poids),
 	append([[Poids, E]], New, Regles),
 	!.
@@ -354,27 +350,27 @@ ponderer(clash, Poids) :-
 	!.
 
 ponderer(check, Poids) :-
-	Poids = 1,
+	Poids = 2,
 	!.
 
 ponderer(rename, Poids) :-
-	Poids = 2,
-	!.
-
-ponderer(simplify, Poids) :-
-	Poids = 2,
-	!.
-
-ponderer(orient, Poids) :-
 	Poids = 3,
 	!.
 
-ponderer(decompose, Poids) :-
+ponderer(simplify, Poids) :-
 	Poids = 4,
 	!.
 
-ponderer(expand, Poids) :-
+ponderer(orient, Poids) :-
 	Poids = 5,
+	!.
+
+ponderer(decompose, Poids) :-
+	Poids = 6,
+	!.
+
+ponderer(expand, Poids) :-
+	Poids = 7,
 	!.
 
 ponderationVersRegle(Num, R) :-
