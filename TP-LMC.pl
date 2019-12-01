@@ -252,7 +252,7 @@ reduit(orient, X ?= T, P, Q) :-
     !.
 
 
-% Unifie
+% Unifie sans stratègie (Question 1)
 
 unifie([]) :-
     echo("\n"),
@@ -266,7 +266,114 @@ unifie(Programme) :-
     reduit(R, X, P, Q),
     unifie(Q),
     !.
+    
+% Unifie avec choix_premier
 
+/*
+    Unification avec choix_premier, on prend la première
+    équation du programme, on récupère la règle à appliquer,
+    puis on réduit le programme.
+*/
+
+unifie([], choix_premier) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_premier) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_premier(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_premier),
+    !.
+
+% Unifie avec choix_pondere
+
+unifie(P, choix_pondere) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_pondere(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_pondere),
+    !.
+
+% Choix
+
+% Choix_premier
+
+/*
+    Le prédicat choix_premier récupère la première équation
+    du programme P, puis choisi la règle de celle si.
+
+    R devient la règle choisie sur l'équation E
+    P devient le système Q
+*/
+choix_premier([PremiereEquation| P], Q, E, R) :-
+    % E devient la première équation
+    E = PremiereEquation,
+    % On retrouve la règle à effectuer
+    regle(E, R),
+    % Q devient le programme sans la première équation
+    Q = P,
+    !.
+
+% Choix_pondere
+
+choix_pondere(P, Q, E, R) :-
+    recupRegle(P, [Equation| _]),
+    Equation = [Poids, E],
+    ponderationVersRegle(Poids, R),
+    delete(P, E, Q),
+    !.
+
+/*
+    Prédicat de récupération des règles
+
+    Regles contient la liste des règles pour chaque équation
+    du programme P
+*/
+
+recupRegle([], Regles) :-
+    Regles = [].
+
+recupRegle([E| P], Regles) :-
+    recupRegle(P, New),
+    regle(E, R),
+    ponderer(R, Poids),
+    append([[Poids, E]], New, Regles),
+    !.
+
+ponderer(clash, Poids) :-
+    Poids = 1,
+    !.
+
+ponderer(check, Poids) :-
+    Poids = 1,
+    !.
+
+ponderer(rename, Poids) :-
+    Poids = 2,
+    !.
+
+ponderer(simplify, Poids) :-
+    Poids = 2,
+    !.
+
+ponderer(orient, Poids) :-
+    Poids = 3,
+    !.
+
+ponderer(decompose, Poids) :-
+    Poids = 4,
+    !.
+
+ponderer(expand, Poids) :-
+    Poids = 5,
+    !.
+
+ponderationVersRegle(Num, R) :-
+    ponderer(R, Num),
+    !.
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
