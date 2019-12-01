@@ -321,8 +321,7 @@ unifie(P, choix_pondere) :-
 
 choix_pondere(P, Q, E, R) :-
 	recupRegle(P, Regles),
-	sort(1, @>=, Regles, [Equation| _]),
-	echo("Equation : "), echo(Equation), echo("\n"),
+	sort(1, @=<, Regles, [Equation| _]),
 	Equation = [Poids, E],
 	ponderationVersRegle(Poids, R),
 	delete(P, E, Q),
@@ -446,9 +445,13 @@ unifie(P, choix_inverse) :-
 	!.
 
 % Choix inversé
-/*choix_inverse(P, Q, E, R) :-
-
-	!.*/
+choix_inverse(P, Q, E, R) :-
+	recupRegle(P, Regles),
+	sort(1, @>=, Regles, [Equation| _]),
+	Equation = [Poids, E],
+	ponderationVersRegle(Poids, R),
+	delete(P, E, Q),
+	!.
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
