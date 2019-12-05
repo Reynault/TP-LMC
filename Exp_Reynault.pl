@@ -89,9 +89,8 @@ regle(Func1 ?= Func2, clash) :-
     functor(Func1, Name1, Arity1),
     functor(Func2, Name2, Arity2),
     Name1 \== Name2,
-    Arity1 \== Arity2,
     !.
-/*
+
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
@@ -106,7 +105,7 @@ regle(Func1 ?= Func2, clash) :-
     functor(Func2, Name2, Arity2),
     Arity1 \== Arity2,
     !.
-*/
+
 % Rename
 
 /*
