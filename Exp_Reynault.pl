@@ -61,24 +61,54 @@ occur_check(V, T) :-
 
 /*
     Si T est un terme alors il faut parcourir ses éléments afin de vérifier que V ne se trouve pas dedans.
-    On transforme alors T en liste et on parcours la liste.
+    Pour cela, on récupère le nombre d'arguments avec functor, puis on parcourt.
 */
 occur_check(V, T):-
+    functor(T, _, Termes),
+    occur_check_parcours(V, T, Termes). 
+
+/*
+    Prédicat de parcours d'occur_check, le cas initial arrête le parcours dans
+    le cas où le numéro d'argument est égal à 0
+*/
+occur_check_parcours(_, _, 0) :-
+    !.
+
+/*
+    Prédicat de parcours d'occur_check, on récupère le ième argument, puis on
+    réalise la vérification grâce au prédicat occur_check.
+    On vérifie également le ième argument moins un.
+*/
+occur_check_parcours(V, Fonc, Arite) :-
+    New is Arite - 1,
+    occur_check_parcours(V, Fonc, New),
+    arg(Arite, Fonc, Arg),
+    echo(Arg),
+    occur_check(V, Arg),
+    !.
+
+% Occur check avec des listes
+
+/*
+    Si T est un terme alors il faut parcourir ses éléments afin de vérifier que V ne se trouve pas dedans.
+    On transforme alors T en liste et on parcours la liste.
+*/
+/*occur_check(V, T):-
     T =.. [ _| Termes],
-    occur_check_parcours(V, Termes).
+    occur_check_parcours(V, Termes).*/
 
 /*
     Prédicat qui permet de mettre fin à la récurrence quand la liste est vide.
 */
-occur_check_parcours(_, []) :-
-    !.
+/*occur_check_parcours(_, []) :-
+    !.*/
 
 /*
     Prédicat de parcours d'une liste de paramètres qu'il faut alors tester un à un.
 */
-occur_check_parcours(V, [Element | Termes]):-
+/*occur_check_parcours(V, [Element | Termes]):-
     occur_check(V, Element),
-    occur_check_parcours(V, Termes).
+    occur_check_parcours(V, Termes).*/
 
 % Clash (Vrai si on peut appliquer la règle)
 
