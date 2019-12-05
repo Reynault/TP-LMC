@@ -32,7 +32,14 @@ echo(_).
 
 % Question n°1
 
-% Règle --> Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+% Règle --> Remove, Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+
+% Règle remove qui permet d'enlever une équation composée des deux même variables, comme X ?= X par exemple
+regle(X ?= T, remove) :-
+    var(X),
+    var(T),
+    X == T,
+    !.
 
 % Regle check associée au test d'occurence, qui est vrai s'il y X dans T
 regle(X ?= T, check) :-
@@ -80,29 +87,31 @@ occur_check_parcours(V, [Element | Termes]):-
     d'arité est différent.
 */
 
-/*
-    Vérification au niveau du nom
-*/
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    Func1 =.. [Nom1| Param1],
-    Func2 =.. [Nom2| Param2],
-    verifNom(Nom1, Nom2),
-    verifArite(Param1, Param2),
+    %Func1 =.. [Nom1| _],
+    %Func2 =.. [Nom2| _],
+    %Nom1 \== Nom2,
+    functor(Func1, Name1, _),
+    functor(Func2, Name2, _),
+    Name1 \== Name2,
     !.
 
-verifNom(Nom1, Nom2) :-
-    Nom1 \== Nom2.
+regle(Func1 ?= Func2, clash) :-
+    compound(Func1),
+    compound(Func2),
+    %Func1 =.. [_| Param1],
+    %Func2 =.. [_| Param2],
 
-/*
-    Vérification au niveau du nombre d'arité
-*/
-verifArite(Termes1, Termes2) :-
-    echo(Termes1),
-    length(Termes1, Nb1),
-    length(Termes2, Nb2),
-    Nb1 \== Nb2.
+    %length(Param1, Nb1),
+    %length(Param2, Nb2),
+    %Nb1 \== Nb2,
+
+    functor(Func1, _, Arity1),
+    functor(Func2, _, Arity2),
+    Arity1 \== Arity2,
+    !.
 
 % Rename
 
@@ -125,18 +134,6 @@ regle(X ?= T, simplify) :-
     var(X), atomic(T),
     !.
 
-% Expand (Vrai si on peut appliquer la règle)
-
-/*
-    Vérification si X est une variable, si T est composé, et si X n'est pas
-    dans T, on utilise l'occur check précédemment défini.
-*/
-regle(X ?= T, expand) :-
-    var(X),
-    compound(T),
-    occur_check(X, T),
-    !.
-
 % Orient (Vrai si on peut appliquer la règle)
 
 /*
@@ -155,16 +152,40 @@ regle(T ?= X, orient) :-
     symboles de fonction sont les mêmes. (même nom et même nombre de paramètres)
 */
 regle(Func1 ?= Func2, decompose) :-
-    Func1 =.. [F| Termes1],
-    Func2 =.. [G| Termes2],
-    F == G,
-    length(Termes1, Nb1),
-    length(Termes2, Nb2),
-    Nb1 == Nb2,
+    compound(Func1),
+    compound(Func2),
+    %Func1 =.. [F| Termes1],
+    %Func2 =.. [G| Termes2],
+    %F == G,
+    %length(Termes1, Nb1),
+    %length(Termes2, Nb2),
+    %Nb1 == Nb2,
+
+    functor(Func1, Name1, Arity1),
+    functor(Func2, Name2, Arity2),
+    Name1 == Name2,
+    Arity1 == Arity2,
     !.
 
+% Expand (Vrai si on peut appliquer la règle)
+
+/*
+    Vérification si X est une variable, si T est composé, et si X n'est pas
+    dans T, on utilise l'occur check précédemment défini.
+*/
+regle(X ?= T, expand) :-
+    var(X),
+    compound(T),
+    occur_check(X, T),
+    !.
 
 % Réduit :
+
+% Reduit de remove (ne fait rien)
+
+reduit(remove, _, P, Q) :-
+    Q = P,
+    !.
 
 % Rename/ Expand/ Simplify
 
@@ -206,13 +227,48 @@ elimination(X ?= T, P, Q) :-
     Q = P,
     !.
 
-% Decompose
+% Decompose without list
 
 /*
     Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
     On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
+    % Récupération du nombre d'arguments
+    functor(Fonc1, _, Arite),
+
+    % Ajout des nouvelles équations
+    decompose(Fonc1, Fonc2, Arite, Liste),
+    % Ajout de la liste dans le programme P
+    append(Liste, P, Q),
+    !.
+
+/*
+    Prédicat de decomposition, cas initial où l'argument
+    parcouru est 0
+*/
+decompose(_, _, 0, _) :-
+    !.
+
+/*
+    Prédicat de decomposition, on prend deux fonctions et on récupère le ième argument
+    afin d'ajouter l'équation Arg1 ?= Arg2 au programme.
+*/
+decompose(Fonc1, Fonc2, Arite, Liste) :-
+    New is Arite - 1,
+    decompose(Fonc1, Fonc2, New, Res),
+    arg(Arite, Fonc1, Arg1),
+    arg(Arite, Fonc2, Arg2),
+    append(Res, [Arg1 ?= Arg2], Liste),
+    !.
+
+% Decompose with list
+
+/*
+    Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
+    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
+*/
+/*reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Récupération des arguments
     Fonc1 =.. [_| Param1],
     Fonc2 =.. [_| Param2],
@@ -222,23 +278,24 @@ reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Ajout de la liste dans le programme P
     append(Liste, P, Q),
     !.
-
+*/
 /*
     Prédicat de decomposition, cas initial où les deux listes des
     arguments sont vides.
 */
-decompose([], [], _) :-
+/*decompose([], [], _) :-
     !.
-
+*/
 /*
     Prédicat de decomposition, on prend deux listes correspondant aux paramètres des deux fonctions.
     On ajoute ensuite la nouvelle équations à une autre liste, de sorte à cumuler toutes les
     équations.
 */
-decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
+/*decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
     decompose(Args1, Args2, Temp),
     append([Arg1 ?= Arg2], Temp, Liste),
     !.
+*/
 
 % Orient
 
@@ -251,6 +308,8 @@ reduit(orient, X ?= T, P, Q) :-
     append([X ?= T], P, Q),
     !.
 
+
+% Unifie
 
 % Unifie sans stratègie (Question 1)
 
@@ -287,18 +346,6 @@ unifie(P, choix_premier) :-
     unifie(Resultat, choix_premier),
     !.
 
-% Unifie avec choix_pondere
-
-unifie(P, choix_pondere) :-
-    echo("system:   "), echo(P), echo("\n"),
-    choix_pondere(P, Q, E, R),
-    echo(R), echo(":   "), echo(E), echo("\n"),
-    reduit(R, E, Q, Resultat),
-    unifie(Resultat, choix_pondere),
-    !.
-
-% Choix
-
 % Choix_premier
 
 /*
@@ -317,10 +364,25 @@ choix_premier([PremiereEquation| P], Q, E, R) :-
     Q = P,
     !.
 
+% Unifie avec choix_pondere
+
+unifie([], choix_pondere) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_pondere) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_pondere(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_pondere),
+    !.
+
 % Choix_pondere
 
 choix_pondere(P, Q, E, R) :-
-    recupRegle(P, [Equation| _]),
+    recupRegle(P, Regles),
+    sort(1, @=<, Regles, [Equation| _]),
     Equation = [Poids, E],
     ponderationVersRegle(Poids, R),
     delete(P, E, Q),
@@ -343,45 +405,138 @@ recupRegle([E| P], Regles) :-
     append([[Poids, E]], New, Regles),
     !.
 
+ponderer(remove, Poids) :-
+    Poids = 0,
+    !.
+
 ponderer(clash, Poids) :-
     Poids = 1,
     !.
 
 ponderer(check, Poids) :-
-    Poids = 1,
+    Poids = 2,
     !.
 
 ponderer(rename, Poids) :-
-    Poids = 2,
-    !.
-
-ponderer(simplify, Poids) :-
-    Poids = 2,
-    !.
-
-ponderer(orient, Poids) :-
     Poids = 3,
     !.
 
-ponderer(decompose, Poids) :-
+ponderer(simplify, Poids) :-
     Poids = 4,
     !.
 
-ponderer(expand, Poids) :-
+ponderer(orient, Poids) :-
     Poids = 5,
+    !.
+
+ponderer(decompose, Poids) :-
+    Poids = 6,
+    !.
+
+ponderer(expand, Poids) :-
+    Poids = 7,
     !.
 
 ponderationVersRegle(Num, R) :-
     ponderer(R, Num),
     !.
 
+% Unifie avec choix aléatoire
+
+unifie([], choix_aleatoire) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_aleatoire) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_aleatoire(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_aleatoire),
+    !.
+
+% Choix aléatoire
+
+/*
+    Le prédicat choix aléatoire récupère une valeur aléatoire entre
+    0 et la taille du programme.
+
+    Il récupère ensuite l'équation E pointée par la valeur aléatoire
+    et récupère la règle R qui peut s'appliquer.
+
+    Puis donne à Q le programme P sans l'équation E.
+*/
+choix_aleatoire(P, Q, E, R) :-
+    % Récupération de la taille de la liste
+    length(P, Taille),
+    % Pour récupérer un aléatoire qui indique une équation dans le programme
+    random(0, Taille, Aleatoire),
+    % On récupère ensuite cette équation
+    recupElement(P, 0, Aleatoire, E),
+    % Et on récupère la règle associée
+    regle(E, R),
+    % Q devient alors P moins E
+    delete(P, E, Q),
+    !.
+
+/*
+    Le prédicat recupElement permet de récupérer l'élément pointé par
+    l'entier Aleatoire dans le programme P.
+*/
+recupElement([], _, _, _).
+
+recupElement([E| P], K, Aleatoire, Element) :-
+    % Si K est égal à Aleatoire, alors Element devient l'équation courante
+    K == Aleatoire -> Element = E, !;
+    % Sinon, incrémentation
+    K1 is K + 1,
+    recupElement(P, K1, Aleatoire, Element),
+    !.
+
+
+
+% Unifie avec choix inversé
+
+unifie([], choix_inverse) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_inverse) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_inverse(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_inverse),
+    !.
+
+% Choix inversé
+choix_inverse(P, Q, E, R) :-
+    recupRegle(P, Regles),
+    sort(1, @>=, Regles, [Equation| _]),
+    Equation = [Poids, E],
+    ponderationVersRegle(Poids, R),
+    delete(P, E, Q),
+    !.
+
+% Question n°3
+
+% Prédicat unif(P, S)
+
+unif(P, S) :-
+    clr_echo,
+    unifie(P, S).
+
+trace_unif(P, S) :-
+    set_echo,
+    unifie(P, S).
+
+
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
 /*
-
 Commande :
 
-    ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).
+    ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)], choix_premier).
 
 Résultat :
 
@@ -400,7 +555,7 @@ Résultat :
 
 Commande :
 
-    ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)]).
+    ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)], choix_premier).
 
 Résultat :
 

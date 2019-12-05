@@ -42,9 +42,9 @@ regle(X ?= T, check) :-
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
 
 /*
-    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
+    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le
     terme T car c'est une variable on peux donc stoper le test d'occurence.
-    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, 
+    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution,
     car les deux sont différents.
 */
 occur_check(V, T) :-
@@ -77,7 +77,7 @@ occur_check_parcours(V, [Element | Termes]):-
 
 /*
     Règle clash, on vérifie deux choses, le nom des deux fonctions est différent ou le nombre
-    d'arité est différent. 
+    d'arité est différent.
 */
 
 /*
@@ -90,8 +90,6 @@ regle(Func1 ?= Func2, clash) :-
     Func2 =.. [Nom2| Param2],
     verifNom(Nom1, Nom2),
     verifArite(Param1, Param2),
-    echo("\n clash peux etre appliquee sur: \n\t"),
-    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
 verifNom(Nom1, Nom2) :-
@@ -114,8 +112,6 @@ verifArite(Termes1, Termes2) :-
 regle(X ?= T, rename) :-
     var(X),
     var(T),
-    echo("\n rename peux etre appliquee sur: \n\t"),
-    echo(X), echo(" ?= "), echo(T),
     !.
 
 % Simplifie (Vrai si on peut appliquer la règle)
@@ -127,8 +123,6 @@ regle(X ?= T, rename) :-
 */
 regle(X ?= T, simplify) :-
     var(X), atomic(T),
-    echo("\n simplify peux etre appliquee sur: \n\t"),
-    echo(X), echo(" ?= "), echo(T),
     !.
 
 % Expand (Vrai si on peut appliquer la règle)
@@ -141,21 +135,17 @@ regle(X ?= T, expand) :-
     var(X),
     compound(T),
     occur_check(X, T),
-    echo("\n expand peux etre appliquee sur: \n\t"),
-    echo(X), echo(" ?= "), echo(T),
     !.
 
 % Orient (Vrai si on peut appliquer la règle)
 
-/* 
+/*
     Test si orient peux etre appliquée sur les deux paramètres
     si il peux etre appliqué alors on ne va pas plus loin, on va déjà
     appliquer cette règle
 */
 regle(T ?= X, orient) :-
     nonvar(T), var(X),
-    echo("\n Orient peux etre appliquee sur: \n\t"),
-    echo(T), echo(" ?= "), echo(X),
     !.
 
 % Decompose (Vrai si on peut appliquer la règle)
@@ -171,12 +161,10 @@ regle(Func1 ?= Func2, decompose) :-
     length(Termes1, Nb1),
     length(Termes2, Nb2),
     Nb1 == Nb2,
-    echo("\n decompose peux etre appliquee sur: \n\t"),
-    echo(Func1), echo(" ?= "), echo(Func2),
     !.
 
 
-% Réduit : 
+% Réduit :
 
 % Rename/ Expand/ Simplify
 
@@ -222,7 +210,7 @@ elimination(X ?= T, P, Q) :-
 
 /*
     Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
-    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q. 
+    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Récupération des arguments
@@ -264,21 +252,128 @@ reduit(orient, X ?= T, P, Q) :-
     !.
 
 
-% Unifie
+% Unifie sans stratègie (Question 1)
 
 unifie([]) :-
-    echo("Fin"),
+    echo("\n"),
     !.
 
-unifie([X ?= T| P]) :-
-    echo("Test de la regle"),
-    regle(X ?= T, R),
-    echo("\nApplication de la regle :"), echo(R), echo("\n"),
-    reduit(R, X ?= T, P, Q),
-    echo("\nContinuation de l'algo sur "), echo(Q), echo("\n"),
+unifie(Programme) :-
+    Programme = [X| P],
+    echo("system:   "), echo(Programme), echo("\n"),
+    regle(X, R),
+    echo(R), echo(":   "), echo(X), echo("\n"),
+    reduit(R, X, P, Q),
     unifie(Q),
     !.
 
+% Unifie avec choix_premier
+
+/*
+    Unification avec choix_premier, on prend la première
+    équation du programme, on récupère la règle à appliquer,
+    puis on réduit le programme.
+*/
+
+unifie([], choix_premier) :-
+    echo("\n"),
+    !.
+
+unifie(P, choix_premier) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_premier(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_premier),
+    !.
+
+% Unifie avec choix_pondere
+
+unifie(P, choix_pondere) :-
+    echo("system:   "), echo(P), echo("\n"),
+    choix_pondere(P, Q, E, R),
+    echo(R), echo(":   "), echo(E), echo("\n"),
+    reduit(R, E, Q, Resultat),
+    unifie(Resultat, choix_pondere),
+    !.
+
+% Choix
+
+% Choix_premier
+
+/*
+    Le prédicat choix_premier récupère la première équation
+    du programme P, puis choisi la règle de celle si.
+
+    R devient la règle choisie sur l'équation E
+    P devient le système Q
+*/
+choix_premier([PremiereEquation| P], Q, E, R) :-
+    % E devient la première équation
+    E = PremiereEquation,
+    % On retrouve la règle à effectuer
+    regle(E, R),
+    % Q devient le programme sans la première équation
+    Q = P,
+    !.
+
+% Choix_pondere
+
+choix_pondere(P, Q, E, R) :-
+    recupRegle(P, [Equation| _]),
+    Equation = [Poids, E],
+    ponderationVersRegle(Poids, R),
+    delete(P, E, Q),
+    !.
+
+/*
+    Prédicat de récupération des règles
+
+    Regles contient la liste des règles pour chaque équation
+    du programme P
+*/
+
+recupRegle([], Regles) :-
+    Regles = [].
+
+recupRegle([E| P], Regles) :-
+    recupRegle(P, New),
+    regle(E, R),
+    ponderer(R, Poids),
+    append([[Poids, E]], New, Regles),
+    !.
+
+ponderer(clash, Poids) :-
+    Poids = 1,
+    !.
+
+ponderer(check, Poids) :-
+    Poids = 1,
+    !.
+
+ponderer(rename, Poids) :-
+    Poids = 2,
+    !.
+
+ponderer(simplify, Poids) :-
+    Poids = 2,
+    !.
+
+ponderer(orient, Poids) :-
+    Poids = 3,
+    !.
+
+ponderer(decompose, Poids) :-
+    Poids = 4,
+    !.
+
+ponderer(expand, Poids) :-
+    Poids = 5,
+    !.
+
+ponderationVersRegle(Num, R) :-
+    ponderer(R, Num),
+    !.
 
 % ---------------------- FIN QUESTION N°1 : Execution des de l'algorithme sur les deux exemples fournis dans le sujet
 
@@ -288,62 +383,34 @@ Commande :
 
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).
 
-Résultat : 
+Résultat :
 
-    Test de la regle
-     decompose peux etre appliquee sur: 
-            f(_14362,_14364) ?= f(g(_14368),h(a))
-    Application de la regle :decompose
+    system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4738)]
+    decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
+    system:   [_4736?=g(_4742),_4738?=h(a),_4742?=f(_4738)]
+    expand:   _4736?=g(_4742)
+    system:   [_4738?=h(a),_4742?=f(_4738)]
+    expand:   _4738?=h(a)
+    system:   [_4742?=f(h(a))]
+    expand:   _4742?=f(h(a))
 
-    Continuation de l'algo sur [_14362?=g(_14368),_14364?=h(a),_14368?=f(_14364)]
-    Test de la regle
-     expand peux etre appliquee sur: 
-            _14362 ?= g(_14368)
-    Application de la regle :expand
-
-    Continuation de l'algo sur [_14364?=h(a),_14368?=f(_14364)]
-    Test de la regle
-     expand peux etre appliquee sur: 
-            _14364 ?= h(a)
-    Application de la regle :expand
-
-    Continuation de l'algo sur [_14368?=f(h(a))]
-    Test de la regle
-     expand peux etre appliquee sur: 
-            _14368 ?= f(h(a))
-    Application de la regle :expand
-
-    Continuation de l'algo sur []
-    Fin
     X = g(f(h(a))),
     Y = h(a),
     Z = f(h(a)).
 
 Commande :
-    
+
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)]).
 
 Résultat :
 
-    Test de la regle
-     decompose peux etre appliquee sur: 
-            f(_8796,_8798) ?= f(g(_8802),h(a))
-    Application de la regle :decompose
-
-    Continuation de l'algo sur [_8796?=g(_8802),_8798?=h(a),_8802?=f(_8796)]
-    Test de la regle
-     expand peux etre appliquee sur: 
-            _8796 ?= g(_8802)
-    Application de la regle :expand
-
-    Continuation de l'algo sur [_8798?=h(a),_8802?=f(g(_8802))]
-    Test de la regle
-     expand peux etre appliquee sur: 
-            _8798 ?= h(a)
-    Application de la regle :expand
-
-    Continuation de l'algo sur [_8802?=f(g(_8802))]
-    Test de la regle
-    Application de la regle :check
+    system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4736)]
+    decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
+    system:   [_4736?=g(_4742),_4738?=h(a),_4742?=f(_4736)]
+    expand:   _4736?=g(_4742)
+    system:   [_4738?=h(a),_4742?=f(g(_4742))]
+    expand:   _4738?=h(a)
+    system:   [_4742?=f(g(_4742))]
+    check:   _4742?=f(g(_4742))
     false.
 */

@@ -32,7 +32,14 @@ echo(_).
 
 % Question n°1
 
-% Règle --> Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+% Règle --> Remove, Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+
+% Règle remove qui permet d'enlever une équation composée des deux même variables, comme X ?= X par exemple
+regle(X ?= T, remove) :-
+    var(X),
+    var(T),
+    X == T,
+    !.
 
 % Regle check associée au test d'occurence, qui est vrai s'il y X dans T
 regle(X ?= T, check) :-
@@ -86,8 +93,8 @@ regle(Func1 ?= Func2, clash) :-
     %Func1 =.. [Nom1| _],
     %Func2 =.. [Nom2| _],
     %Nom1 \== Nom2,
-    functor(Func1, Name1, Arity1),
-    functor(Func2, Name2, Arity2),
+    functor(Func1, Name1, _),
+    functor(Func2, Name2, _),
     Name1 \== Name2,
     !.
 
@@ -101,8 +108,8 @@ regle(Func1 ?= Func2, clash) :-
     %length(Param2, Nb2),
     %Nb1 \== Nb2,
 
-    functor(Func1, Name1, Arity1),
-    functor(Func2, Name2, Arity2),
+    functor(Func1, _, Arity1),
+    functor(Func2, _, Arity2),
     Arity1 \== Arity2,
     !.
 
@@ -174,6 +181,12 @@ regle(X ?= T, expand) :-
 
 % Réduit :
 
+% Reduit de remove (ne fait rien)
+
+reduit(remove, _, P, Q) :-
+    Q = P,
+    !.
+
 % Rename/ Expand/ Simplify
 
 /*
@@ -214,13 +227,48 @@ elimination(X ?= T, P, Q) :-
     Q = P,
     !.
 
-% Decompose
+% Decompose without list
 
 /*
     Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
     On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
+    % Récupération du nombre d'arguments
+    functor(Fonc1, _, Arite),
+
+    % Ajout des nouvelles équations
+    decompose(Fonc1, Fonc2, Arite, Liste),
+    % Ajout de la liste dans le programme P
+    append(Liste, P, Q),
+    !.
+
+/*
+    Prédicat de decomposition, cas initial où l'argument
+    parcouru est 0
+*/
+decompose(_, _, 0, _) :-
+    !.
+
+/*
+    Prédicat de decomposition, on prend deux fonctions et on récupère le ième argument
+    afin d'ajouter l'équation Arg1 ?= Arg2 au programme.
+*/
+decompose(Fonc1, Fonc2, Arite, Liste) :-
+    New is Arite - 1,
+    decompose(Fonc1, Fonc2, New, Res),
+    arg(Arite, Fonc1, Arg1),
+    arg(Arite, Fonc2, Arg2),
+    append(Res, [Arg1 ?= Arg2], Liste),
+    !.
+
+% Decompose with list
+
+/*
+    Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
+    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
+*/
+/*reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Récupération des arguments
     Fonc1 =.. [_| Param1],
     Fonc2 =.. [_| Param2],
@@ -230,23 +278,24 @@ reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Ajout de la liste dans le programme P
     append(Liste, P, Q),
     !.
-
+*/
 /*
     Prédicat de decomposition, cas initial où les deux listes des
     arguments sont vides.
 */
-decompose([], [], _) :-
+/*decompose([], [], _) :-
     !.
-
+*/
 /*
     Prédicat de decomposition, on prend deux listes correspondant aux paramètres des deux fonctions.
     On ajoute ensuite la nouvelle équations à une autre liste, de sorte à cumuler toutes les
     équations.
 */
-decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
+/*decompose([Arg1| Args1], [Arg2| Args2], Liste) :-
     decompose(Args1, Args2, Temp),
     append([Arg1 ?= Arg2], Temp, Liste),
     !.
+*/
 
 % Orient
 
@@ -355,6 +404,10 @@ recupRegle([E| P], Regles) :-
 	ponderer(R, Poids),
 	append([[Poids, E]], New, Regles),
 	!.
+
+ponderer(remove, Poids) :-
+    Poids = 0,
+    !.
 
 ponderer(clash, Poids) :-
 	Poids = 1,
