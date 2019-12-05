@@ -42,9 +42,9 @@ regle(X ?= T, check) :-
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
 
 /*
-    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
+    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le
     terme T car c'est une variable on peux donc stoper le test d'occurence.
-    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, 
+    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution,
     car les deux sont différents.
 */
 occur_check(V, T) :-
@@ -77,7 +77,7 @@ occur_check_parcours(V, [Element | Termes]):-
 
 /*
     Règle clash, on vérifie deux choses, le nom des deux fonctions est différent ou le nombre
-    d'arité est différent. 
+    d'arité est différent.
 */
 
 /*
@@ -86,10 +86,12 @@ occur_check_parcours(V, [Element | Termes]):-
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    Func1 =.. [Nom1| Param1],
-    Func2 =.. [Nom2| Param2],
-    verifNom(Nom1, Nom2),
-    verifArite(Param1, Param2),
+    functor(Func1, Name1, Arity1),
+    functor(Func2, Name2, Arity2),
+    %Func1 =.. [Nom1| Param1],
+    %Func2 =.. [Nom2| Param2],
+    verifNom(Name1, Name2),
+    verifArite(Arity1, Arity2),
     !.
 
 verifNom(Nom1, Nom2) :-
@@ -98,11 +100,12 @@ verifNom(Nom1, Nom2) :-
 /*
     Vérification au niveau du nombre d'arité
 */
-verifArite(Termes1, Termes2) :-
-    echo(Termes1),
-    length(Termes1, Nb1),
-    length(Termes2, Nb2),
-    Nb1 \== Nb2.
+verifArite(Arity1, Arity2) :-
+    Arity1 \== Arity2.
+    %echo(Termes1),
+    %length(Termes1, Nb1),
+    %length(Termes2, Nb2),
+    %Nb1 \== Nb2.
 
 % Rename
 
@@ -139,7 +142,7 @@ regle(X ?= T, expand) :-
 
 % Orient (Vrai si on peut appliquer la règle)
 
-/* 
+/*
     Test si orient peux etre appliquée sur les deux paramètres
     si il peux etre appliqué alors on ne va pas plus loin, on va déjà
     appliquer cette règle
@@ -155,16 +158,20 @@ regle(T ?= X, orient) :-
     symboles de fonction sont les mêmes. (même nom et même nombre de paramètres)
 */
 regle(Func1 ?= Func2, decompose) :-
-    Func1 =.. [F| Termes1],
-    Func2 =.. [G| Termes2],
-    F == G,
-    length(Termes1, Nb1),
-    length(Termes2, Nb2),
-    Nb1 == Nb2,
+    %Func1 =.. [F| Termes1],
+    %Func2 =.. [G| Termes2],
+    %F == G,
+    functor(Func1, Name1, Arity1),
+    functor(Func2, Name2, Arity2),
+    Name1 == Name2,
+    Arity1 == Arity2,
+    %length(Termes1, Nb1),
+    %length(Termes2, Nb2),
+    %Nb1 == Nb2,
     !.
 
 
-% Réduit : 
+% Réduit :
 
 % Rename/ Expand/ Simplify
 
@@ -210,17 +217,19 @@ elimination(X ?= T, P, Q) :-
 
 /*
     Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
-    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q. 
+    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Récupération des arguments
-    Fonc1 =.. [_| Param1],
-    Fonc2 =.. [_| Param2],
-
+    %Fonc1 =.. [_| Param1],
+    %Fonc2 =.. [_| Param2],
+    arg(Argi1, Fonc1, Arg1),
+    arg(Argi2, Fonc2, Arg2),
     % Ajout des nouvelles équations
-    decompose(Param1, Param2, Liste),
+    %decompose(Param1, Param2, Liste),
     % Ajout de la liste dans le programme P
-    append(Liste, P, Q),
+    %append(Liste, P, Q),
+    append([Arg1 ?= Arg2], P, Q),
     !.
 
 /*
@@ -266,7 +275,7 @@ unifie(Programme) :-
     reduit(R, X, P, Q),
     unifie(Q),
     !.
-    
+
 % Unifie avec choix_premier
 
 /*
@@ -383,7 +392,7 @@ Commande :
 
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)]).
 
-Résultat : 
+Résultat :
 
     system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4738)]
     decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
@@ -399,7 +408,7 @@ Résultat :
     Z = f(h(a)).
 
 Commande :
-    
+
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)]).
 
 Résultat :

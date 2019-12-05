@@ -42,9 +42,9 @@ regle(X ?= T, check) :-
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
 
 /*
-    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le 
+    Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le
     terme T car c'est une variable on peux donc stoper le test d'occurence.
-    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution, 
+    Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution,
     car les deux sont différents.
 */
 occur_check(V, T) :-
@@ -77,28 +77,36 @@ occur_check_parcours(V, [Element | Termes]):-
 
 /*
     Règle clash, on vérifie deux choses, le nom des deux fonctions est différent ou le nombre
-    d'arité est différent. 
+    d'arité est différent.
 */
 
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    Func1 =.. [Nom1| _],
-    Func2 =.. [Nom2| _],
-    Nom1 \== Nom2,
+    %Func1 =.. [Nom1| _],
+    %Func2 =.. [Nom2| _],
+    %Nom1 \== Nom2,
+    functor(Func1, Name1, Arity1),
+    functor(Func2, Name2, Arity2),
+    Name1 \== Name2,
+    Arity1 \== Arity2,
     !.
-
+/*
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    Func1 =.. [_| Param1],
-    Func2 =.. [_| Param2],
+    %Func1 =.. [_| Param1],
+    %Func2 =.. [_| Param2],
 
-    length(Param1, Nb1),
-    length(Param2, Nb2),
-    Nb1 \== Nb2,
+    %length(Param1, Nb1),
+    %length(Param2, Nb2),
+    %Nb1 \== Nb2,
+
+    functor(Func1, Name1, Arity1),
+    functor(Func2, Name2, Arity2),
+    Arity1 \== Arity2,
     !.
-
+*/
 % Rename
 
 /*
@@ -122,7 +130,7 @@ regle(X ?= T, simplify) :-
 
 % Orient (Vrai si on peut appliquer la règle)
 
-/* 
+/*
     Test si orient peux etre appliquée sur les deux paramètres
     si il peux etre appliqué alors on ne va pas plus loin, on va déjà
     appliquer cette règle
@@ -138,14 +146,19 @@ regle(T ?= X, orient) :-
     symboles de fonction sont les mêmes. (même nom et même nombre de paramètres)
 */
 regle(Func1 ?= Func2, decompose) :-
-	compound(Func1),
-	compound(Func2),
-    Func1 =.. [F| Termes1],
-    Func2 =.. [G| Termes2],
-    F == G,
-    length(Termes1, Nb1),
-    length(Termes2, Nb2),
-    Nb1 == Nb2,
+    compound(Func1),
+    compound(Func2),
+    %Func1 =.. [F| Termes1],
+    %Func2 =.. [G| Termes2],
+    %F == G,
+    %length(Termes1, Nb1),
+    %length(Termes2, Nb2),
+    %Nb1 == Nb2,
+
+    functor(Func1, Name1, Arity1),
+    functor(Func2, Name2, Arity2),
+    Name1 == Name2,
+    Arity1 == Arity2,
     !.
 
 % Expand (Vrai si on peut appliquer la règle)
@@ -160,7 +173,7 @@ regle(X ?= T, expand) :-
     occur_check(X, T),
     !.
 
-% Réduit : 
+% Réduit :
 
 % Rename/ Expand/ Simplify
 
@@ -206,7 +219,7 @@ elimination(X ?= T, P, Q) :-
 
 /*
     Prédicat reduit qui permet d'appliquer la règle decompose sur l'équation E.
-    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q. 
+    On ajout alors au programme P les nouvelles équations, le résultat est placé dans Q.
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Récupération des arguments
@@ -473,7 +486,7 @@ Commande :
 
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(Y)], choix_premier).
 
-Résultat : 
+Résultat :
 
     system:   [f(_4736,_4738)?=f(g(_4742),h(a)),_4742?=f(_4738)]
     decompose:   f(_4736,_4738)?=f(g(_4742),h(a))
@@ -489,7 +502,7 @@ Résultat :
     Z = f(h(a)).
 
 Commande :
-    
+
     ?- unifie([f(X,Y) ?= f(g(Z),h(a)), Z ?= f(X)], choix_premier).
 
 Résultat :
