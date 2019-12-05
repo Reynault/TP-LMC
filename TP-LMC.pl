@@ -86,12 +86,10 @@ occur_check_parcours(V, [Element | Termes]):-
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    functor(Func1, Name1, Arity1),
-    functor(Func2, Name2, Arity2),
-    %Func1 =.. [Nom1| Param1],
-    %Func2 =.. [Nom2| Param2],
-    verifNom(Name1, Name2),
-    verifArite(Arity1, Arity2),
+    Func1 =.. [Nom1| Param1],
+    Func2 =.. [Nom2| Param2],
+    verifNom(Nom1, Nom2),
+    verifArite(Param1, Param2),
     !.
 
 verifNom(Nom1, Nom2) :-
@@ -100,12 +98,11 @@ verifNom(Nom1, Nom2) :-
 /*
     Vérification au niveau du nombre d'arité
 */
-verifArite(Arity1, Arity2) :-
-    Arity1 \== Arity2.
-    %echo(Termes1),
-    %length(Termes1, Nb1),
-    %length(Termes2, Nb2),
-    %Nb1 \== Nb2.
+verifArite(Termes1, Termes2) :-
+    echo(Termes1),
+    length(Termes1, Nb1),
+    length(Termes2, Nb2),
+    Nb1 \== Nb2.
 
 % Rename
 
@@ -158,16 +155,12 @@ regle(T ?= X, orient) :-
     symboles de fonction sont les mêmes. (même nom et même nombre de paramètres)
 */
 regle(Func1 ?= Func2, decompose) :-
-    %Func1 =.. [F| Termes1],
-    %Func2 =.. [G| Termes2],
-    %F == G,
-    functor(Func1, Name1, Arity1),
-    functor(Func2, Name2, Arity2),
-    Name1 == Name2,
-    Arity1 == Arity2,
-    %length(Termes1, Nb1),
-    %length(Termes2, Nb2),
-    %Nb1 == Nb2,
+    Func1 =.. [F| Termes1],
+    Func2 =.. [G| Termes2],
+    F == G,
+    length(Termes1, Nb1),
+    length(Termes2, Nb2),
+    Nb1 == Nb2,
     !.
 
 
@@ -221,15 +214,13 @@ elimination(X ?= T, P, Q) :-
 */
 reduit(decompose, Fonc1 ?= Fonc2, P, Q) :-
     % Récupération des arguments
-    %Fonc1 =.. [_| Param1],
-    %Fonc2 =.. [_| Param2],
-    arg(Argi1, Fonc1, Arg1),
-    arg(Argi2, Fonc2, Arg2),
+    Fonc1 =.. [_| Param1],
+    Fonc2 =.. [_| Param2],
+
     % Ajout des nouvelles équations
-    %decompose(Param1, Param2, Liste),
+    decompose(Param1, Param2, Liste),
     % Ajout de la liste dans le programme P
-    %append(Liste, P, Q),
-    append([Arg1 ?= Arg2], P, Q),
+    append(Liste, P, Q),
     !.
 
 /*
