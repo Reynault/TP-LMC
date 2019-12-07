@@ -25,19 +25,17 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
-% Configuration pre-execution
+% Configuration pré-éxecution
 
 :- style_check(-discontiguous).
 :- set_echo.
 
 % Question n°1
 
-% Règle --> Remove, Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+% Règle
 
-% Règle remove qui permet d'enlever une équation composée des deux même variables, comme X ?= X par exemple
+% Règle remove qui permet d'enlever une équation composée des deux mêmes termes, telles que X ?= X, a ?= a, f(a) ?= f(a)
 regle(X ?= T, remove) :-
-    var(X),
-    var(T),
     X == T,
     !.
 
@@ -83,7 +81,6 @@ occur_check_parcours(V, Fonc, Arite) :-
     New is Arite - 1,
     occur_check_parcours(V, Fonc, New),
     arg(Arite, Fonc, Arg),
-    echo(Arg),
     occur_check(V, Arg),
     !.
 
@@ -120,9 +117,7 @@ occur_check_parcours(V, Fonc, Arite) :-
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    %Func1 =.. [Nom1| _],
-    %Func2 =.. [Nom2| _],
-    %Nom1 \== Nom2,
+
     functor(Func1, Name1, _),
     functor(Func2, Name2, _),
     Name1 \== Name2,
@@ -131,12 +126,6 @@ regle(Func1 ?= Func2, clash) :-
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    %Func1 =.. [_| Param1],
-    %Func2 =.. [_| Param2],
-
-    %length(Param1, Nb1),
-    %length(Param2, Nb2),
-    %Nb1 \== Nb2,
 
     functor(Func1, _, Arity1),
     functor(Func2, _, Arity2),
@@ -184,12 +173,6 @@ regle(T ?= X, orient) :-
 regle(Func1 ?= Func2, decompose) :-
     compound(Func1),
     compound(Func2),
-    %Func1 =.. [F| Termes1],
-    %Func2 =.. [G| Termes2],
-    %F == G,
-    %length(Termes1, Nb1),
-    %length(Termes2, Nb2),
-    %Nb1 == Nb2,
 
     functor(Func1, Name1, Arity1),
     functor(Func2, Name2, Arity2),

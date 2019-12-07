@@ -25,19 +25,17 @@ clr_echo :- retractall(echo_on).
 echo(T) :- echo_on, !, write(T).
 echo(_).
 
-% Configuration pre-execution
+% Configuration pré-éxecution
 
 :- style_check(-discontiguous).
 :- set_echo.
 
 % Question n°1
 
-% Règle --> Remove, Check, Clash, Rename, Simplify, Expand, Orient, Decompose
+% Règle
 
-% Règle remove qui permet d'enlever une équation composée des deux même variables, comme X ?= X par exemple
+% Règle remove qui permet d'enlever une équation composée des deux mêmes termes, telles que X ?= X, a ?= a, f(a) ?= f(a)
 regle(X ?= T, remove) :-
-    var(X),
-    var(T),
     X == T,
     !.
 
@@ -61,24 +59,53 @@ occur_check(V, T) :-
 
 /*
     Si T est un terme alors il faut parcourir ses éléments afin de vérifier que V ne se trouve pas dedans.
-    On transforme alors T en liste et on parcours la liste.
+    Pour cela, on récupère le nombre d'arguments avec functor, puis on parcourt.
 */
 occur_check(V, T):-
+    functor(T, _, Termes),
+    occur_check_parcours(V, T, Termes). 
+
+/*
+    Prédicat de parcours d'occur_check, le cas initial arrête le parcours dans
+    le cas où le numéro d'argument est égal à 0
+*/
+occur_check_parcours(_, _, 0) :-
+    !.
+
+/*
+    Prédicat de parcours d'occur_check, on récupère le ième argument, puis on
+    réalise la vérification grâce au prédicat occur_check.
+    On vérifie également le ième argument moins un.
+*/
+occur_check_parcours(V, Fonc, Arite) :-
+    New is Arite - 1,
+    occur_check_parcours(V, Fonc, New),
+    arg(Arite, Fonc, Arg),
+    occur_check(V, Arg),
+    !.
+
+% Occur check avec des listes
+
+/*
+    Si T est un terme alors il faut parcourir ses éléments afin de vérifier que V ne se trouve pas dedans.
+    On transforme alors T en liste et on parcours la liste.
+*/
+/*occur_check(V, T):-
     T =.. [ _| Termes],
-    occur_check_parcours(V, Termes).
+    occur_check_parcours(V, Termes).*/
 
 /*
     Prédicat qui permet de mettre fin à la récurrence quand la liste est vide.
 */
-occur_check_parcours(_, []) :-
-    !.
+/*occur_check_parcours(_, []) :-
+    !.*/
 
 /*
     Prédicat de parcours d'une liste de paramètres qu'il faut alors tester un à un.
 */
-occur_check_parcours(V, [Element | Termes]):-
+/*occur_check_parcours(V, [Element | Termes]):-
     occur_check(V, Element),
-    occur_check_parcours(V, Termes).
+    occur_check_parcours(V, Termes).*/
 
 % Clash (Vrai si on peut appliquer la règle)
 
@@ -90,9 +117,7 @@ occur_check_parcours(V, [Element | Termes]):-
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    %Func1 =.. [Nom1| _],
-    %Func2 =.. [Nom2| _],
-    %Nom1 \== Nom2,
+
     functor(Func1, Name1, _),
     functor(Func2, Name2, _),
     Name1 \== Name2,
@@ -101,12 +126,6 @@ regle(Func1 ?= Func2, clash) :-
 regle(Func1 ?= Func2, clash) :-
     compound(Func1),
     compound(Func2),
-    %Func1 =.. [_| Param1],
-    %Func2 =.. [_| Param2],
-
-    %length(Param1, Nb1),
-    %length(Param2, Nb2),
-    %Nb1 \== Nb2,
 
     functor(Func1, _, Arity1),
     functor(Func2, _, Arity2),
@@ -154,12 +173,6 @@ regle(T ?= X, orient) :-
 regle(Func1 ?= Func2, decompose) :-
     compound(Func1),
     compound(Func2),
-    %Func1 =.. [F| Termes1],
-    %Func2 =.. [G| Termes2],
-    %F == G,
-    %length(Termes1, Nb1),
-    %length(Termes2, Nb2),
-    %Nb1 == Nb2,
 
     functor(Func1, Name1, Arity1),
     functor(Func2, Name2, Arity2),
@@ -382,7 +395,7 @@ unifie(P, choix_pondere) :-
 
 choix_pondere(P, Q, E, R) :-
     recupRegle(P, Regles),
-    sort(1, @=<, Regles, [Equation| _]),
+    sort(0, @=<, Regles, [Equation| _]),
     Equation = [Poids, E],
     ponderationVersRegle(Poids, R),
     delete(P, E, Q),
@@ -497,10 +510,18 @@ recupElement([E| P], K, Aleatoire, Element) :-
 
 % Unifie avec choix inversé
 
+/*
+    Ce predicat permet de réaliser un choix inversé par rapport à la pondération
+    proposée pour l'unification avec stratégie de choix pondéré
+*/
 unifie([], choix_inverse) :-
     echo("\n"),
     !.
 
+/*
+    Unifie utilise le prédicat choix_inversé qui va trier dans le sens inverse
+    les ponderations pour récupérer la règle avec la pondération la plus grande.
+*/
 unifie(P, choix_inverse) :-
     echo("system:   "), echo(P), echo("\n"),
     choix_inverse(P, Q, E, R),
@@ -522,10 +543,16 @@ choix_inverse(P, Q, E, R) :-
 
 % Prédicat unif(P, S)
 
+/*
+    Utilisation de l'algorithme sans l'affichage des echos
+*/
 unif(P, S) :-
     clr_echo,
     unifie(P, S).
 
+/*
+    Utilisation de l'algorithme avec l'affichage
+*/
 trace_unif(P, S) :-
     set_echo,
     unifie(P, S).
