@@ -62,10 +62,9 @@ regle(X ?= T, check) :-
 % Test d'occurence (Vrai si V ne se trouve pas dans T)
 
 % Si on compare (V) a une variable (T) alors on sait que V ne peut pas se trouver dans le
-% terme T car c'est une variable, on peux donc stopper le test d'occurence.
-%
-% Si V != T et que T n'est pas une variable (donc un terme) alors on peux stopper l'execution,
-% car les deux sont différents.
+% terme T car c'est une variable, on peux donc stopper les autres prédicats avec !. Il faut alors vérifier
+% si V != T, auquel cas le prédicat renvoie Vrai. Sinon, cela signifie qu'il y a une occurrence
+% de V dans T.
 occur_check(V, T) :-
     var(T),!,
     V \== T,
