@@ -359,7 +359,7 @@ reduit(orient, X ?= T, P, Q) :-
 %
 % Prédicat Vrai lorsque le programme est vide
 unifie([]) :-
-    echo("\n"),
+    echo("\n"), echo("Yes"),
     !.
 
 % Prédicat principal de l'unification, qui,
