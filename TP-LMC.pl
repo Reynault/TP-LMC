@@ -478,7 +478,7 @@ choix_pondere(P, Q, E, R) :-
     % Prédicat permettant de récupérer la liste des équations avec une pondération
     recupRegle(P, Regles),
     % Application du trie pour récupérer en premier élément, l'équation avec le poids le plus important (petit)
-    sort(0, @=<, Regles, [Equation| _]),
+    sort(1, @=<, Regles, [Equation| _]),
     % E devient l'équation cible
     Equation = [Poids, E],
     % Récupération de la règle R avec la pondération
