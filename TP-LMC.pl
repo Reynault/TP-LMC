@@ -344,7 +344,7 @@ decompose(Fonc1, Fonc2, Arite, Liste) :-
 % puis l'ajoute au programme P, le résulat est alors stocké dans Q
 reduit(orient, X ?= T, P, Q) :-
     % Ajout dans P de l'équation inversée
-    append([X ?= T], P, Q),
+    append([T ?= X], P, Q),
     !.
 
 % ----------------------------------------------------
